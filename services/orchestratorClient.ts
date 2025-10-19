@@ -619,14 +619,14 @@ function base64FromBytes(bytes: Uint8Array) {
 
 function createMusicWavDataUri(plan: GeneratedPlan | null, requestedDuration: number, lyrics: string) {
   const bpm = plan?.bpm ?? 120;
-  const duration = Math.min(Math.max(requestedDuration || plan?.duration_sec || 90, 20), 240);
-  const safeDuration = Number.isFinite(duration) ? duration : 90;
+  const duration = Math.min(Math.max(requestedDuration || plan?.duration_sec || 90, 20), 60);
+  const safeDuration = Number.isFinite(duration) ? duration : 60;
 
   if (!plan) {
     return createLegacyMusicWavDataUri(safeDuration, bpm, lyrics);
   }
 
-  const sampleRate = 44100;
+  const sampleRate = 22050;
   const totalSamples = Math.max(1, Math.floor(sampleRate * safeDuration));
   const mixBuffer = new Float32Array(totalSamples);
   const timeline = buildTimeline(plan, safeDuration, sampleRate, bpm);
@@ -703,8 +703,8 @@ function createMusicWavDataUri(plan: GeneratedPlan | null, requestedDuration: nu
 }
 
 function createLegacyMusicWavDataUri(duration: number, bpm: number, lyrics: string) {
-  const clampedDuration = Math.min(Math.max(duration, 6), 32);
-  const sampleRate = 44100;
+  const clampedDuration = Math.min(Math.max(duration, 6), 24);
+  const sampleRate = 22050;
   const totalSamples = Math.floor(sampleRate * clampedDuration);
   const channels = 1;
   const bytesPerSample = 2;

@@ -135,7 +135,7 @@ const HomePage = () => {
   const [formState, setFormState] = useState<FormState>({
     prompt: '',
     genres: [],
-    duration: 90,
+    duration: 60,
     artists: [],
     lyrics: '',
     languages: [],
@@ -149,6 +149,8 @@ const HomePage = () => {
   const [enhancingField, setEnhancingField] = useState<EnhancingField | null>(null);
 
   const eventSourceRef = useRef<EventSource | null>(null);
+  const progressAnimatorRef = useRef<number | null>(null);
+  const lastProgressRef = useRef(0);
   const { toast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
@@ -191,6 +193,10 @@ const HomePage = () => {
       eventSourceRef.current.close();
       eventSourceRef.current = null;
     }
+    if (progressAnimatorRef.current) {
+      cancelAnimationFrame(progressAnimatorRef.current);
+      progressAnimatorRef.current = null;
+    }
     setJob(null);
     setDisplayProgress(0);
     setTotalTimeLeft('00:00');
@@ -198,6 +204,19 @@ const HomePage = () => {
   }, []);
 
   useEffect(() => resetJob, [resetJob]);
+
+  useEffect(() => {
+    lastProgressRef.current = displayProgress;
+  }, [displayProgress]);
+
+  useEffect(() => {
+    return () => {
+      if (progressAnimatorRef.current) {
+        cancelAnimationFrame(progressAnimatorRef.current);
+        progressAnimatorRef.current = null;
+      }
+    };
+  }, []);
 
   const handleSuggestion = useCallback(async (field: EnhancingField) => {
     if (!field) return;
@@ -259,7 +278,7 @@ const HomePage = () => {
     } finally {
       setEnhancingField(null);
     }
-  }, [formState, toast]);
+  }, [formState, toast, animateProgress]);
 
   const saveJobToHistory = (jobRecord: Job) => {
     try {
@@ -314,7 +333,7 @@ const HomePage = () => {
       languages: formState.languages,
     };
     setJob(baseJob);
-    setDisplayProgress(5);
+    animateProgress(5, 400);
     setTotalTimeLeft(formatSeconds(estimatedTotal));
     setStageTimeLeft(formatSeconds(STATUS_ETAS['planning'] || 0));
 
@@ -402,7 +421,7 @@ const HomePage = () => {
                   languages: formState.languages,
                 };
                 setJob(completedJob);
-                setDisplayProgress(100);
+                animateProgress(100, 600);
                 setTotalTimeLeft('00:00');
                 setStageTimeLeft('00:00');
                 saveJobToHistory(completedJob);
@@ -437,7 +456,9 @@ const HomePage = () => {
               step: stageIndex + 1,
               totalSteps: STAGE_SEQUENCE.length,
             } : prev);
-            setDisplayProgress(event.pct ?? displayProgress);
+
+            const nextPct = event.pct ?? Math.min(99, lastProgressRef.current + 3);
+            animateProgress(nextPct, Math.max(400, stageEta * 700));
             setStageTimeLeft(formatSeconds(stageEta));
             setTotalTimeLeft(formatSeconds(stageEta + remaining));
           }
@@ -459,6 +480,10 @@ const HomePage = () => {
       eventSourceRef.current.close();
       eventSourceRef.current = null;
     }
+    if (progressAnimatorRef.current) {
+      cancelAnimationFrame(progressAnimatorRef.current);
+      progressAnimatorRef.current = null;
+    }
     setJob(prev => prev ? { ...prev, status: 'cancelled', message: 'Generation cancelled by user.' } : prev);
   };
 
@@ -467,7 +492,11 @@ const HomePage = () => {
       eventSourceRef.current.close();
       eventSourceRef.current = null;
     }
-    setFormState({ prompt: '', genres: [], duration: 90, artists: [], lyrics: '', languages: [], generateVideo: false, videoStyles: ['lyrical'] });
+    if (progressAnimatorRef.current) {
+      cancelAnimationFrame(progressAnimatorRef.current);
+      progressAnimatorRef.current = null;
+    }
+    setFormState({ prompt: '', genres: [], duration: 60, artists: [], lyrics: '', languages: [], generateVideo: false, videoStyles: ['lyrical'] });
     setJob(null);
     setDisplayProgress(0);
     setTotalTimeLeft('00:00');
@@ -584,3 +613,27 @@ const HomePage = () => {
 };
 
 export default HomePage;
+  const animateProgress = useCallback((target: number, durationMs = 600) => {
+    const startValue = lastProgressRef.current;
+    const clampedTarget = Math.min(100, Math.max(startValue, target));
+    if (progressAnimatorRef.current) {
+      cancelAnimationFrame(progressAnimatorRef.current);
+    }
+    if (clampedTarget <= startValue) {
+      setDisplayProgress(clampedTarget);
+      return;
+    }
+    const startTime = performance.now();
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const t = Math.min(1, elapsed / durationMs);
+      const eased = startValue + (clampedTarget - startValue) * (1 - Math.pow(1 - t, 3));
+      setDisplayProgress(eased);
+      if (t < 1) {
+        progressAnimatorRef.current = requestAnimationFrame(step);
+      } else {
+        progressAnimatorRef.current = null;
+      }
+    };
+    progressAnimatorRef.current = requestAnimationFrame(step);
+  }, []);

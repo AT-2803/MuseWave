@@ -14,6 +14,48 @@ if (!apiKey) {
 
 let ai: any = null;
 
+function getApiBase() {
+    if (typeof window === 'undefined') return null;
+    const metaEnv = (import.meta as any)?.env;
+    const value = metaEnv?.VITE_API_BASE_URL;
+    if (!value) return null;
+    return String(value).replace(/\/+$/, '');
+}
+
+async function fetchJsonWithTimeout(path: string, body: any, timeoutMs = 4000) {
+    const base = getApiBase();
+    if (!base) return null;
+
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = controller
+        ? setTimeout(() => {
+              try {
+                  controller.abort();
+              } catch {
+                  /* ignore */
+              }
+          }, timeoutMs)
+        : null;
+
+    try {
+        const response = await fetch(`${base}${path}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+            signal: controller?.signal,
+        });
+        if (!response.ok) {
+            throw new Error(`Request failed with status ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.warn(`[MuseWave] Falling back to local AI helper for ${path}`, error);
+        return null;
+    } finally {
+        if (timer) clearTimeout(timer);
+    }
+}
+
 const fallbackGenrePool = [
     'synthwave',
     'deep house',
@@ -360,11 +402,8 @@ const suggestionSystemInstruction = `You are an AI Musicologist and expert DJ as
 Your primary goal is to provide **world-class, non-generic, and inspiring suggestions** that are directly relevant to the user's input. Your suggestions should feel like they are coming from a seasoned industry professional who is passionate about music.`;
 
 export const enhancePrompt = async (context: any) => {
-    const API_BASE = typeof window !== 'undefined' ? (import.meta as any).env?.VITE_API_BASE_URL || null : null;
-    if (typeof window !== 'undefined' && API_BASE) {
-        const resp = await fetch(`${API_BASE.replace(/\/$/, '')}/api/enhance-prompt`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ context }) });
-        return resp.json();
-    }
+    const remote = await fetchJsonWithTimeout('/api/enhance-prompt', { context });
+    if (remote) return remote;
     if (!ai) {
         const generator = (attempt: number) => {
             const seed = hashString(
@@ -406,11 +445,8 @@ In either case, you MUST incorporate ideas from the other context fields (genres
 }
 
 export const suggestGenres = async (context: any) => {
-    const API_BASE = typeof window !== 'undefined' ? (import.meta as any).env?.VITE_API_BASE_URL || null : null;
-    if (typeof window !== 'undefined' && API_BASE) {
-        const resp = await fetch(`${API_BASE.replace(/\/$/, '')}/api/suggest-genres`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ context }) });
-        return resp.json();
-    }
+    const remote = await fetchJsonWithTimeout('/api/suggest-genres', { context });
+    if (remote) return remote;
     if (!ai) {
         const generator = (attempt: number) => {
             const corpus = `${context.prompt || ''} ${context.lyrics || ''} ${context.artists?.join(' ') || ''}`;
@@ -446,11 +482,8 @@ Based on the provided context and your vast knowledge of music history and curre
 }
 
 export const suggestArtists = async (context: any) => {
-    const API_BASE = typeof window !== 'undefined' ? (import.meta as any).env?.VITE_API_BASE_URL || null : null;
-    if (typeof window !== 'undefined' && API_BASE) {
-        const resp = await fetch(`${API_BASE.replace(/\/$/, '')}/api/suggest-artists`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ context }) });
-        return resp.json();
-    }
+    const remote = await fetchJsonWithTimeout('/api/suggest-artists', { context });
+    if (remote) return remote;
     if (!ai) {
         const generator = (attempt: number) => {
             const seed = hashString(`${context.genres?.join(',') || ''}|${context.prompt || ''}|${Date.now()}|${attempt}`);
@@ -490,11 +523,8 @@ Based on the context and your expert knowledge, suggest 3-5 relevant artist infl
 }
 
 export const suggestLanguages = async (context: any) => {
-    const API_BASE = typeof window !== 'undefined' ? (import.meta as any).env?.VITE_API_BASE_URL || null : null;
-    if (typeof window !== 'undefined' && API_BASE) {
-        const resp = await fetch(`${API_BASE.replace(/\/$/, '')}/api/suggest-languages`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ context }) });
-        return resp.json();
-    }
+    const remote = await fetchJsonWithTimeout('/api/suggest-languages', { context });
+    if (remote) return remote;
     if (!ai) {
         const generator = (attempt: number) => {
             const seed = hashString(`${context.genres?.join(',') || ''}|${context.prompt || ''}|${Date.now()}|${attempt}`);

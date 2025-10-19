@@ -4,14 +4,16 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-  "dev": "vite",
-  "build": "vite build",
-  "preview": "vite preview",
-  "smoke": "npm run build && node scripts/smoke-playwright.mjs"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "smoke": "npm run build && node scripts/smoke-playwright.mjs"
   },
   "dependencies": {
     "@google/genai": "latest",
+    "@vercel/blob": "^2.0.0",
     "clsx": "2.1.1",
+    "dotenv": "^17.2.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "6.22.3",

@@ -278,7 +278,7 @@ const HomePage = () => {
     } finally {
       setEnhancingField(null);
     }
-  }, [formState, toast, animateProgress]);
+  }, [formState, toast]);
 
   const saveJobToHistory = (jobRecord: Job) => {
     try {
@@ -473,7 +473,7 @@ const HomePage = () => {
       toast(message, 'error');
       setJob(prev => prev ? { ...prev, status: 'error', message } : prev);
     }
-  }, [formState, toast]);
+  }, [formState, toast, animateProgress]);
 
   const handleCancel = () => {
     if (eventSourceRef.current) {

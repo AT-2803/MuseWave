@@ -218,6 +218,31 @@ const HomePage = () => {
     };
   }, []);
 
+  const animateProgress = useCallback((target: number, durationMs = 600) => {
+    const startValue = lastProgressRef.current;
+    const clampedTarget = Math.min(100, Math.max(startValue, target));
+    if (progressAnimatorRef.current) {
+      cancelAnimationFrame(progressAnimatorRef.current);
+    }
+    if (clampedTarget <= startValue) {
+      setDisplayProgress(clampedTarget);
+      return;
+    }
+    const startTime = performance.now();
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const t = Math.min(1, elapsed / durationMs);
+      const eased = startValue + (clampedTarget - startValue) * (1 - Math.pow(1 - t, 3));
+      setDisplayProgress(eased);
+      if (t < 1) {
+        progressAnimatorRef.current = requestAnimationFrame(step);
+      } else {
+        progressAnimatorRef.current = null;
+      }
+    };
+    progressAnimatorRef.current = requestAnimationFrame(step);
+  }, []);
+
   const handleSuggestion = useCallback(async (field: EnhancingField) => {
     if (!field) return;
     setEnhancingField(field);
@@ -613,27 +638,3 @@ const HomePage = () => {
 };
 
 export default HomePage;
-  const animateProgress = useCallback((target: number, durationMs = 600) => {
-    const startValue = lastProgressRef.current;
-    const clampedTarget = Math.min(100, Math.max(startValue, target));
-    if (progressAnimatorRef.current) {
-      cancelAnimationFrame(progressAnimatorRef.current);
-    }
-    if (clampedTarget <= startValue) {
-      setDisplayProgress(clampedTarget);
-      return;
-    }
-    const startTime = performance.now();
-    const step = (now: number) => {
-      const elapsed = now - startTime;
-      const t = Math.min(1, elapsed / durationMs);
-      const eased = startValue + (clampedTarget - startValue) * (1 - Math.pow(1 - t, 3));
-      setDisplayProgress(eased);
-      if (t < 1) {
-        progressAnimatorRef.current = requestAnimationFrame(step);
-      } else {
-        progressAnimatorRef.current = null;
-      }
-    };
-    progressAnimatorRef.current = requestAnimationFrame(step);
-  }, []);

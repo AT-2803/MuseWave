@@ -8,12 +8,9 @@ const generateSchema = z.object({
 });
 
 export const generateRoute: FastifyPluginAsync = async (app) => {
-  app.post('/generate', {
-    schema: {
-      body: generateSchema,
-    },
-  }, async (request, reply) => {
-    const { prompt, duration, includeVideo } = request.body as z.infer<typeof generateSchema>;
+  app.post('/generate', async (request, reply) => {
+    const body = request.body as any;
+    const { prompt, duration, includeVideo } = body;
 
     // Create job
     const job = await app.prisma.job.create({

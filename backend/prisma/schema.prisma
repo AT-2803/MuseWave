@@ -8,26 +8,26 @@ generator client {
 }
 
 model Job {
-  id          String     @id @default(cuid())
-  status      JobStatus  @default(pending)
+  id          String   @id @default(cuid())
+  status      String   @default("pending")
   prompt      String
   duration    Int
-  includeVideo Boolean   @default(false)
-  plan        Json?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  includeVideo Boolean @default(false)
+  plan        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   assets      Asset[]
   userId      String?
 }
 
 model Asset {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   jobId     String
-  type      AssetType
+  type      String
   url       String
   size      Int?
-  createdAt DateTime  @default(now())
-  job       Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
 }
 
 model ApiKey {
@@ -55,17 +55,4 @@ model Usage {
   action    String
   timestamp DateTime @default(now())
   apiKey    ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
-}
-
-enum JobStatus {
-  pending
-  processing
-  completed
-  failed
-}
-
-enum AssetType {
-  audio
-  video
-  plan
 }

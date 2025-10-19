@@ -169,19 +169,80 @@ const MuseForgeForm = ({
         />
       </div>
 
-       {/* Duration */}
+      {/* Duration */}
       <div className="space-y-2">
         <label htmlFor="duration" className="block text-sm font-medium text-gray-300">
-            Duration: <span className="text-primary font-mono">{formatDuration(formState.duration)}</span>
+          Duration: <span className="text-primary font-mono">{formatDuration(formState.duration)}</span>
         </label>
-        <Slider
+        <div className="flex flex-col gap-2">
+          <Slider
             value={[formState.duration]}
             onValueChange={(v) => handleFieldChange('duration', v[0])}
             min={15}
-            max={300} // 5 minutes
-            step={5}
+            max={72000} // 20 hours
+            step={1}
             disabled={isLoading}
-        />
+          />
+
+          <div className="grid grid-cols-3 gap-2 pt-2">
+            <div>
+              <label className="block text-xs text-gray-400">Hours</label>
+              <input
+                type="number"
+                aria-label="Hours"
+                min={0}
+                max={20}
+                value={Math.floor(formState.duration / 3600)}
+                onChange={(e) => {
+                  const h = Math.max(0, Math.min(20, Number(e.target.value || 0)));
+                  const m = Math.floor((formState.duration % 3600) / 60);
+                  const s = formState.duration % 60;
+                  handleFieldChange('duration', h * 3600 + m * 60 + s);
+                }}
+                className="w-full bg-gray-800 border border-gray-700 rounded-md p-2 text-sm"
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-400">Minutes</label>
+              <input
+                type="number"
+                aria-label="Minutes"
+                min={0}
+                max={59}
+                value={Math.floor((formState.duration % 3600) / 60)}
+                onChange={(e) => {
+                  const m = Math.max(0, Math.min(59, Number(e.target.value || 0)));
+                  const h = Math.floor(formState.duration / 3600);
+                  const s = formState.duration % 60;
+                  handleFieldChange('duration', h * 3600 + m * 60 + s);
+                }}
+                className="w-full bg-gray-800 border border-gray-700 rounded-md p-2 text-sm"
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-400">Seconds</label>
+              <input
+                type="number"
+                aria-label="Seconds"
+                min={0}
+                max={59}
+                value={formState.duration % 60}
+                onChange={(e) => {
+                  const s = Math.max(0, Math.min(59, Number(e.target.value || 0)));
+                  const h = Math.floor(formState.duration / 3600);
+                  const m = Math.floor((formState.duration % 3600) / 60);
+                  handleFieldChange('duration', h * 3600 + m * 60 + s);
+                }}
+                className="w-full bg-gray-800 border border-gray-700 rounded-md p-2 text-sm"
+                disabled={isLoading}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
        {/* Artist Inspiration */}

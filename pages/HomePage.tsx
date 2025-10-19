@@ -135,7 +135,7 @@ const HomePage = () => {
   const [formState, setFormState] = useState<FormState>({
     prompt: '',
     genres: [],
-    duration: 60,
+    duration: 90,
     artists: [],
     lyrics: '',
     languages: [],
@@ -521,7 +521,7 @@ const HomePage = () => {
       cancelAnimationFrame(progressAnimatorRef.current);
       progressAnimatorRef.current = null;
     }
-    setFormState({ prompt: '', genres: [], duration: 60, artists: [], lyrics: '', languages: [], generateVideo: false, videoStyles: ['lyrical'] });
+    setFormState({ prompt: '', genres: [], duration: 90, artists: [], lyrics: '', languages: [], generateVideo: false, videoStyles: ['lyrical'] });
     setJob(null);
     setDisplayProgress(0);
     setTotalTimeLeft('00:00');

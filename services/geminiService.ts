@@ -18,13 +18,16 @@ function getApiBase() {
     if (typeof window === 'undefined') return null;
     const metaEnv = (import.meta as any)?.env;
     const value = metaEnv?.VITE_API_BASE_URL;
-    if (!value) return null;
-    return String(value).replace(/\/+$/, '');
+    if (value && typeof value === 'string' && value.length > 0) {
+        return String(value).replace(/\/+$/, '');
+    }
+    return '';
 }
 
 async function fetchJsonWithTimeout(path: string, body: any, timeoutMs = 4000) {
     const base = getApiBase();
-    if (!base) return null;
+    if (base === null) return null;
+    const url = `${base}${path}`;
 
     const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
     const timer = controller
@@ -38,7 +41,7 @@ async function fetchJsonWithTimeout(path: string, body: any, timeoutMs = 4000) {
         : null;
 
     try {
-        const response = await fetch(`${base}${path}`, {
+        const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
@@ -572,11 +575,8 @@ Recommend 1-3 vocal languages that best suit the genre, cultural tone, and artis
 }
 
 export const enhanceLyrics = async (context: any) => {
-    const API_BASE = typeof window !== 'undefined' ? (import.meta as any).env?.VITE_API_BASE_URL || null : null;
-   if (typeof window !== 'undefined' && API_BASE) {
-       const resp = await fetch(`${API_BASE.replace(/\/$/, '')}/api/enhance-lyrics`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ context }) });
-       return resp.json();
-    }
+    const remote = await fetchJsonWithTimeout('/api/enhance-lyrics', { context }, 6000);
+    if (remote) return remote;
     if (!ai) {
         const lyrics = ensureDifferentString((attempt) => {
             const themeSource = `${context.prompt || ''} ${context.lyrics || ''}`.trim() || 'electric nights';

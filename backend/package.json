@@ -1,25 +1,36 @@
 {
   "name": "musewave-backend",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "Backend for MuseWave music and video generation",
+  "main": "dist/index.js",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx src/index.ts",
+    "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "migrate": "prisma migrate dev",
-    "seed": "ts-node src/seed.ts",
-    "test": "vitest run"
+    "test": "vitest",
+    "test:run": "vitest run",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "lint": "eslint src/**/*.ts",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.623.0",
+    "@fastify/autoload": "^5.8.1",
+    "@fastify/cors": "^9.0.1",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/rate-limit": "^9.1.0",
+    "@fastify/static": "^7.0.4",
     "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^5.18.0",
-    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2",
+    "fastify": "^4.26.0",
     "pino": "^9.3.0",
-    "prom-client": "^14.2.0",
+    "prom-client": "^15.1.0",
     "ulid": "^2.3.0",
     "zod": "^3.23.8"
   },
@@ -27,12 +38,17 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/node": "^20.11.30",
+    "@types/supertest": "^6.0.2",
     "pino-pretty": "^11.1.0",
     "prisma": "^5.18.0",
+    "supertest": "^6.3.4",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsx": "^4.20.6",
     "typescript": "^5.4.5",
     "vitest": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }

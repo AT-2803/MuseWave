@@ -1,30 +1,58 @@
-import { Counter, Registry, collectDefaultMetrics, Gauge } from 'prom-client';
+import { register, collectDefaultMetrics, Gauge, Counter } from 'prom-client';
+import { FastifyPluginAsync } from 'fastify';
+import { config } from './config.js';
 
-export const registry = new Registry();
-collectDefaultMetrics({ register: registry });
+// Enable default metrics
+collectDefaultMetrics();
 
-export const requestCounter = new Counter({
-  name: 'http_requests_total',
-  help: 'Total HTTP requests',
-  labelNames: ['method', 'route', 'status'],
-  registers: [registry],
+// Custom metrics
+export const jobDuration = new Gauge({
+  name: 'musewave_job_duration_seconds',
+  help: 'Duration of job processing in seconds',
+  labelNames: ['status'],
 });
 
-export const jobCounter = new Counter({
-  name: 'jobs_processed_total',
-  help: 'Total jobs processed',
-  labelNames: ['type', 'status'],
-  registers: [registry],
+export const jobCount = new Counter({
+  name: 'musewave_jobs_total',
+  help: 'Total number of jobs processed',
+  labelNames: ['status'],
+});
+
+export const requestCount = new Counter({
+  name: 'musewave_requests_total',
+  help: 'Total number of HTTP requests',
+  labelNames: ['method', 'route', 'status'],
+});
+
+export const queueSize = new Gauge({
+  name: 'musewave_queue_size',
+  help: 'Current queue size',
 });
 
 export const rateLimitCounter = new Counter({
-  name: 'rate_limit_rejections_total',
+  name: 'musewave_rate_limit_rejections_total',
   help: 'Total rate limit rejections',
-  registers: [registry],
 });
 
 export const ffmpegGauge = new Gauge({
-  name: 'ffmpeg_available',
+  name: 'musewave_ffmpeg_available',
   help: 'Indicates if ffmpeg binary is reachable',
-  registers: [registry],
 });
+
+// Fastify plugin
+export const metricsPlugin: FastifyPluginAsync = async (app) => {
+  if (!config.METRICS_ENABLED) return;
+
+  // Decorate with metrics
+  app.decorate('metrics', { jobDuration, jobCount, requestCount, queueSize, rateLimitCounter, ffmpegGauge });
+
+  // Middleware to count requests
+  app.addHook('onResponse', (request, reply) => {
+    const route = request.routeOptions.url || 'unknown';
+    requestCount.inc({
+      method: request.method,
+      route,
+      status: String(reply.statusCode),
+    });
+  });
+};

@@ -1,24 +1,22 @@
-import { Router } from 'express';
-import { execFile } from 'child_process';
-import { ffmpegGauge } from '../metrics';
+import { FastifyPluginAsync } from 'fastify';
 
-function checkFfmpeg(): Promise<'found' | 'missing'> {
-  return new Promise((resolve) => {
-    execFile('ffmpeg', ['-version'], (error) => {
-      if (error) {
-        ffmpegGauge.set(0);
-        resolve('missing');
-      } else {
-        ffmpegGauge.set(1);
-        resolve('found');
-      }
+export const healthRoute: FastifyPluginAsync = async (app) => {
+  app.get('/health', async (request, reply) => {
+    // Check database connection
+    try {
+      await app.prisma.$queryRaw`SELECT 1`;
+    } catch (error) {
+      return reply.code(503).send({ status: 'unhealthy', database: 'down' });
+    }
+
+    // Check ffmpeg availability
+    const ffmpegOk = app.ffmpeg.available;
+
+    return reply.send({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      database: 'up',
+      ffmpeg: ffmpegOk ? 'available' : 'unavailable',
     });
   });
-}
-
-export const healthRouter = Router();
-
-healthRouter.get('/', async (_req, res) => {
-  const ffmpeg = await checkFfmpeg();
-  res.json({ status: 'ok', ffmpeg });
-});
+};

@@ -1,16 +1,18 @@
-# MuseWave Backend (In Progress)
+# MuseWave Backend
 
-This directory contains the new service stack for MuseWave. The implementation is progressing in stages.
+A TypeScript backend for music and video generation using Fastify, Prisma, and ffmpeg.
 
-## Current Capabilities
+## Features
 
-- Project tooling (TypeScript, Prisma, Vitest) and environment configuration.
-- Database schema for jobs, assets, API keys, and rate counters.
-- Seed script to create a development API key.
-- Queue engine with in-process scheduling, concurrency limits, exponential backoff, and idempotent enqueue calls. Plan and audio workers are implemented, producing structured blueprints and ffmpeg-synthesised stems/preview audio assets.
-- HTTP server with auth and rate limiting middleware, health and metrics endpoints, and REST routes for job creation & retrieval.
+- REST API for music/video generation
+- Real-time job status via SSE
+- In-process job queue with concurrency and retries
+- Local or S3 asset storage
+- Bearer token authentication with rate limiting
+- Prometheus metrics
+- SQLite database with Prisma ORM
 
-## Getting Started
+## Quick Start
 
 Prerequisites:
 - Node.js 20+
@@ -19,26 +21,84 @@ Prerequisites:
 1. Copy the environment template:
    ```bash
    cp .env.example .env
+   # Edit .env with your API keys
    ```
+
 2. Install dependencies:
    ```bash
    npm install
    ```
-3. Run migrations:
+
+3. Set up database:
    ```bash
-   npm run migrate
+   npm run db:push
+   npm run db:seed
    ```
-4. Seed the dev API key (optional):
-   ```bash
-   npm run seed
-   ```
-5. Start the service scaffold:
+
+4. Start development server:
    ```bash
    npm run dev
    ```
 
-## Next Steps
+5. Build for production:
+   ```bash
+   npm run build
+   npm start
+   ```
 
-- Add remaining domain-specific workers (`vocals`, `mix`, `video`).
-- Integrate optional external providers or more advanced models as they become available.
-- Flesh out REST handlers to orchestrate workers and stream generated assets end-to-end.
+## API Endpoints
+
+### Health Check
+```bash
+curl http://localhost:3000/health
+```
+
+### Generate Music/Video
+```bash
+curl -X POST http://localhost:3000/generate \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Create a upbeat electronic track",
+    "duration": 30,
+    "includeVideo": true
+  }'
+```
+
+### Get Job Status
+```bash
+curl http://localhost:3000/jobs/JOB_ID \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Download Asset
+```bash
+curl http://localhost:3000/assets/ASSET_ID \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Metrics
+```bash
+curl http://localhost:3000/metrics
+```
+
+## Environment Variables
+
+See `.env.example` for all configuration options.
+
+## Development
+
+- `npm run dev` - Start development server with hot reload
+- `npm run build` - Build TypeScript to JavaScript
+- `npm run test` - Run tests with Vitest
+- `npm run db:migrate` - Run database migrations
+- `npm run db:seed` - Seed database with test data
+
+## Architecture
+
+- **Server**: Fastify with plugins for CORS, security, rate limiting
+- **Database**: SQLite with Prisma ORM
+- **Queue**: In-memory queue with worker concurrency
+- **Storage**: Local filesystem or S3
+- **Audio/Video**: ffmpeg for processing and rendering
+- **AI**: Google Gemini for planning and enhancement

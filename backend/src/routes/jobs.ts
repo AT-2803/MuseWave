@@ -1,20 +1,35 @@
-import { Router } from 'express';
-import { prisma } from '../db';
+import { FastifyPluginAsync } from 'fastify';
 
-export const jobsRouter = Router();
+export const jobsRoute: FastifyPluginAsync = async (app) => {
+  app.get('/jobs/:id', async (request, reply) => {
+    const { id } = request.params as { id: string };
 
-jobsRouter.get('/:id', async (req, res) => {
-  const job = await prisma.job.findUnique({ where: { id: req.params.id } });
-  if (!job) {
-    return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Job not found' } });
-  }
-  res.json({
-    id: job.id,
-    type: job.type,
-    status: job.status,
-    attempts: job.attempts,
-    error: job.error,
-    result: job.result ? JSON.parse(job.result) : null,
-    assetId: job.assetId,
+    const job = await app.prisma.job.findUnique({
+      where: { id },
+      include: {
+        assets: true,
+      },
+    });
+
+    if (!job) {
+      return reply.code(404).send({ error: 'Job not found' });
+    }
+
+    return reply.send({
+      id: job.id,
+      status: job.status,
+      prompt: job.prompt,
+      duration: job.duration,
+      includeVideo: job.includeVideo,
+      plan: job.plan,
+      assets: job.assets.map(asset => ({
+        id: asset.id,
+        type: asset.type,
+        url: asset.url,
+        size: asset.size,
+      })),
+      createdAt: job.createdAt,
+      updatedAt: job.updatedAt,
+    });
   });
-});
+};

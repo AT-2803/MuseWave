@@ -5,7 +5,7 @@ async function main() {
   try {
     const existing = await prisma.apiKey.findFirst({ where: { key: 'dev-key' } });
     if (!existing) {
-      await prisma.apiKey.create({ data: { name: 'Development', key: 'dev-key', rateLimitPerMin: 120 } });
+      await prisma.apiKey.create({ data: { name: 'Development', key: 'dev-key', userId: 'dev-user', rateLimitPerMin: 120 } });
     }
   } finally {
     await prisma.$disconnect();

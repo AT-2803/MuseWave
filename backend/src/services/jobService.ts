@@ -1,11 +1,11 @@
-import { PrismaClient, JobStatus } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { logger } from '../logger.js';
 import { jobCount } from '../metrics.js';
 
 export class JobService {
   constructor(private prisma: PrismaClient) {}
 
-  async updateJobStatus(jobId: string, status: JobStatus, error?: string): Promise<void> {
+  async updateJobStatus(jobId: string, status: string, error?: string): Promise<void> {
     try {
       await this.prisma.job.update({
         where: { id: jobId },
@@ -53,4 +53,4 @@ export class JobService {
   }
 }
 
-export const jobService = new JobService(new PrismaClient());
+export const jobService = (prisma: PrismaClient) => new JobService(prisma);

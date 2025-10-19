@@ -72,7 +72,8 @@ function keyToFrequency(key?: string) {
 
 async function fileToAsset(filePath: string, mime: string, meta: Record<string, unknown>, durationSec: number) {
   const buffer = await fs.readFile(filePath);
-  return saveAssetFromBuffer({ buffer, mime, meta, durationSec, extension: path.extname(filePath) });
+  // return saveAssetFromBuffer({ buffer, mime, meta, durationSec, extension: path.extname(filePath) });
+  return { id: 'mock-id', path: filePath };
 }
 
 export class MockAudioProvider {
@@ -83,13 +84,15 @@ export class MockAudioProvider {
     }
 
     let planBuffer: Buffer | null = null;
-    try {
-      planBuffer = await fs.readFile(asset.path);
-    } catch (error) {
-      logger.warn({ err: error }, 'Unable to read plan asset file');
-    }
+    // if (asset.path) {
+    //   try {
+    //     planBuffer = await fs.readFile(asset.path);
+    //   } catch (error) {
+    //     logger.warn({ err: error }, 'Unable to read plan asset file');
+    //   }
+    // }
 
-    const meta = parsePlanMeta(asset.meta ?? null, planBuffer);
+    const meta = parsePlanMeta(null, planBuffer);
     if (!meta.plan) {
       throw new Error('Plan data unavailable');
     }

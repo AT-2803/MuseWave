@@ -15,7 +15,9 @@ export const assetsRoute: FastifyPluginAsync = async (app) => {
     // For local storage, stream the file
     if (asset.url.startsWith('file://')) {
       const filePath = asset.url.substring(7);
-      return reply.sendFile(filePath);
+      const fs = await import('fs');
+      const stream = fs.createReadStream(filePath);
+      return reply.type('application/octet-stream').send(stream);
     }
 
     // For S3, redirect or proxy

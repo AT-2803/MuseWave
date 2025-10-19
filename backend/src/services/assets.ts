@@ -16,6 +16,8 @@ function ensureExtension(mime: string, provided?: string) {
 export async function saveAssetFromBuffer(options: {
   buffer: Buffer;
   mime: string;
+  jobId: string;
+  type: string;
   meta?: Record<string, unknown>;
   extension?: string;
   durationSec?: number;
@@ -38,11 +40,10 @@ export async function saveAssetFromBuffer(options: {
   await prisma.asset.create({
     data: {
       id,
-      path: filePath,
-      mime: options.mime,
-      durationSec: options.durationSec ?? null,
-      sizeBytes: options.buffer.length,
-      meta: options.meta ? JSON.stringify(options.meta) : null,
+      jobId: options.jobId,
+      type: options.type,
+      url: `file://${filePath}`,
+      size: options.buffer.length,
     },
   });
 

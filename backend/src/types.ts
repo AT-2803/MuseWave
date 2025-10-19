@@ -1,3 +1,26 @@
+import { PrismaClient } from '@prisma/client';
+import { Queue } from './queue/queue.js';
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    prisma: PrismaClient;
+    queue: Queue;
+    ffmpeg: {
+      available: boolean;
+      spawn: (args: string[], options?: any) => any;
+    };
+  }
+
+  interface FastifyRequest {
+    apiKey?: {
+      id: string;
+      key: string;
+      userId: string;
+      createdAt: Date;
+    };
+  }
+}
+
 export type JobHandlerContext = {
   job: QueueJob;
   params: Record<string, unknown>;

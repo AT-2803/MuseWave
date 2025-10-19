@@ -48,7 +48,7 @@ export const metricsPlugin: FastifyPluginAsync = async (app) => {
 
   // Middleware to count requests
   app.addHook('onResponse', (request, reply) => {
-    const route = request.routeOptions.url || 'unknown';
+    const route = request.routeOptions?.url || request.url || 'unknown';
     requestCount.inc({
       method: request.method,
       route,

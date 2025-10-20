@@ -40,16 +40,6 @@ jobs:
         run: npm test
         continue-on-error: true  # Optional: allow deploy even if tests fail
 
-      - name: Deploy to Vercel
-        if: github.ref == 'refs/heads/main'
-        run: |
-          # Vercel CLI is not needed if connected via Git integration
-          # But if manual deploy is required, install and use
-          npm install -g vercel
-          vercel --prod --yes
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-
       - name: Auto-commit any changes (e.g., build artifacts)
         if: github.ref == 'refs/heads/main'
         run: |

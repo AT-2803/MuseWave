@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { PrismaClient } from '@neondatabase/serverless';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 

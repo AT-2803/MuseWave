@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@google/genai": "latest",
+    "@prisma/client": "^6.17.1",
     "@vercel/blob": "^2.0.0",
     "@vercel/node": "^5.4.1",
     "clsx": "2.1.1",

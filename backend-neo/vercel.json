@@ -1,14 +1,21 @@
 {
   "version": 2,
   "functions": {
-    "api.js": {
+    "api/health.js": {
+      "runtime": "nodejs20.x"
+    },
+    "api/generate/pipeline.js": {
       "runtime": "nodejs20.x"
     }
   },
   "routes": [
     {
-      "src": "/api",
-      "dest": "/api.js"
+      "src": "/health",
+      "dest": "/api/health.js"
+    },
+    {
+      "src": "/api/generate/pipeline",
+      "dest": "/api/generate/pipeline.js"
     }
   ]
 }

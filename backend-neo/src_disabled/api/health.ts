@@ -1,7 +1,9 @@
 import { FastifyPluginAsync } from 'fastify';
 
 export const healthRoute: FastifyPluginAsync = async (app) => {
+  console.log('Registering health route');
   app.get('/health', async () => {
+    console.log('Health endpoint called');
     // Check ffmpeg availability
     let ffmpegType = 'wasm';
     try {

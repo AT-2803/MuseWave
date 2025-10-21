@@ -1,13 +1,6 @@
 {
   "version": 2,
-  "functions": {
-    "api/health.js": {
-      "runtime": "nodejs20.x"
-    },
-    "api/generate/pipeline.js": {
-      "runtime": "nodejs20.x"
-    }
-  },
+  "buildCommand": "echo 'no build needed for serverless'",
   "routes": [
     {
       "src": "/health",

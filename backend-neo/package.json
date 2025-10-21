@@ -31,7 +31,8 @@
     "retry": "0.13.1",
     "throttleit": "2.1.0",
     "undici": "5.29.0",
-    "uuid": "^11.0.3"
+    "uuid": "^11.0.3",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/fluent-ffmpeg": "^2.1.27",

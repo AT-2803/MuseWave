@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import fastify from 'fastify';
 import { healthRoute } from './api/health.js';
 import { seedRoute } from './api/model/seed.js';
@@ -24,5 +25,14 @@ app.register(pipelineRoute, { prefix: '/api/generate' });
 app.register(jobRoute, { prefix: '/api/jobs' });
 app.register(assetRoute, { prefix: '/api/assets' });
 app.register(metricsRoute);
+
+const port = process.env.PORT || 3000;
+app.listen({ port: Number(port), host: '0.0.0.0' }, (err, address) => {
+  if (err) {
+    console.error(err);
+    process.exit(1);
+  }
+  console.log(`Server listening at ${address}`);
+});
 
 export default app;

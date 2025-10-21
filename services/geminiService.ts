@@ -90,17 +90,38 @@ const fallbackGenrePool = [
     'vaporwave',
     'chillwave',
     'lofi hip hop',
+    'cyberpunk',
+    'ethno-tech',
+    'reggaeton fusion',
+    'k-pop house',
+    'ambient pop',
+    'industrial techno',
+    'jungle revival',
+    'neo-classical electronic',
+    'hyperbass',
+    'lofi trap',
+    'afro-house',
+    'tech-house',
+    'minimal techno',
+    'acid house',
+    'dubstep evolution',
+    'wave',
+    'post-punk revival',
+    'experimental hip-hop',
 ];
 
 const fallbackArtistPool: Record<string, string[]> = {
-    default: ['Kaytranada', 'Fred again..', 'ODESZA', 'Caribou', 'Anyma', 'Charlotte de Witte', 'Peggy Gou', 'Jamie xx'],
-    ambient: ['Jon Hopkins', 'Helios', 'Tycho', 'Brian Eno', 'Bonobo', 'Nils Frahm'],
-    techno: ['Bicep', 'Ben Böhmer', 'Amelie Lens', 'Stephan Bodzin', 'Reinier Zonneveld'],
-    house: ['Purple Disco Machine', 'Disclosure', 'Chris Lake', 'Diplo', 'Duke Dumont'],
-    pop: ['Dua Lipa', 'The Weeknd', 'Billie Eilish', 'Charli XCX'],
-    trap: ['Metro Boomin', 'RL Grime', 'Flume', 'Baauer'],
-    bass: ['Sub Focus', 'Skrillex', 'Alison Wonderland', 'Seven Lions'],
-    latin: ['Bad Bunny', 'ROSALÍA', 'J Balvin', 'Rauw Alejandro'],
+    default: ['Kaytranada', 'Fred again..', 'ODESZA', 'Caribou', 'Anyma', 'Charlotte de Witte', 'Peggy Gou', 'Jamie xx', 'Arca', 'SOPHIE', 'Holly Herndon'],
+    ambient: ['Jon Hopkins', 'Helios', 'Tycho', 'Brian Eno', 'Bonobo', 'Nils Frahm', 'Max Richter', 'Ólafur Arnalds'],
+    techno: ['Bicep', 'Ben Böhmer', 'Amelie Lens', 'Stephan Bodzin', 'Reinier Zonneveld', 'Adam Beyer', 'Nina Kraviz'],
+    house: ['Purple Disco Machine', 'Disclosure', 'Chris Lake', 'Diplo', 'Duke Dumont', 'Fisher', 'Meduza'],
+    pop: ['Dua Lipa', 'The Weeknd', 'Billie Eilish', 'Charli XCX', 'Olivia Rodrigo', 'Lizzo'],
+    trap: ['Metro Boomin', 'RL Grime', 'Flume', 'Baauer', 'Travis Scott', 'Lil Uzi Vert'],
+    bass: ['Sub Focus', 'Skrillex', 'Alison Wonderland', 'Seven Lions', 'Flux Pavilion', 'Noisia'],
+    latin: ['Bad Bunny', 'ROSALÍA', 'J Balvin', 'Rauw Alejandro', 'Karol G', 'Anitta'],
+    hyperpop: ['100 gecs', 'PC Music artists', 'A.G. Cook', 'SOPHIE'],
+    experimental: ['Arca', 'Holly Herndon', 'Holly Herndon', 'Aisha Devi'],
+    kpop: ['BTS', 'BLACKPINK', 'TWICE', 'Stray Kids'],
 };
 
 const fallbackLanguagePool = [
@@ -119,23 +140,60 @@ const fallbackLanguagePool = [
     'Mandarin',
     'Arabic',
     'Yoruba',
+    'Swahili',
+    'Russian',
+    'Dutch',
+    'Swedish',
+    'Turkish',
+    'Thai',
+    'Vietnamese',
+    'Indonesian',
+    'Polish',
+    'Czech',
 ];
 
 const promptTextures = ['glassine pads', 'pulsing bass lines', 'fractaled arpeggios', 'cinematic swells', 'granular vocal chops', 'stuttering percussion', 'analog synth blooms'];
 const promptSettings = ['neon skyline', 'midnight rooftop', 'desert rave', 'immersive light installation', 'tidal undercurrent', 'future noir city', 'celestial observatory'];
 const promptGrooves = ['polyrhythmic groove', 'syncopated rhythm', 'rolling halftime swing', 'four-on-the-floor drive', 'broken beat shuffle'];
 const genreKeywordMap: { pattern: RegExp; genres: string[] }[] = [
-    { pattern: /(ambient|atmosphere|cinematic|drone|space)/i, genres: ['ambient', 'cinematic electronica', 'downtempo'] },
-    { pattern: /(club|dance|floor|dj|house|groove)/i, genres: ['deep house', 'tech-house', 'uk garage'] },
-    { pattern: /(bass|808|trap|drill|grime)/i, genres: ['trap', 'future bass', 'phonk'] },
-    { pattern: /(sunset|chill|relax|study|lofi|vibes)/i, genres: ['lofi house', 'chillwave', 'vaporwave'] },
-    { pattern: /(festival|anthem|uplift|epic|rave)/i, genres: ['progressive house', 'melodic techno', 'psytrance'] },
-    { pattern: /(latin|tropical|summer|carnival)/i, genres: ['latin house', 'afrobeats', 'baile funk'] },
-    { pattern: /(hip\s?hop|rap|boom bap)/i, genres: ['hip-hop', 'trap soul', 'lofi hip hop'] },
+    { pattern: /(ambient|atmosphere|cinematic|drone|space)/i, genres: ['ambient', 'cinematic electronica', 'downtempo', 'ambient pop'] },
+    { pattern: /(club|dance|floor|dj|house|groove)/i, genres: ['deep house', 'tech-house', 'uk garage', 'afro-house'] },
+    { pattern: /(bass|808|trap|drill|grime|hyperbass)/i, genres: ['trap', 'future bass', 'phonk', 'lofi trap'] },
+    { pattern: /(sunset|chill|relax|study|lofi|vibes)/i, genres: ['lofi house', 'chillwave', 'vaporwave', 'lofi hip hop'] },
+    { pattern: /(festival|anthem|uplift|epic|rave|psy)/i, genres: ['progressive house', 'melodic techno', 'psytrance', 'jungle revival'] },
+    { pattern: /(latin|tropical|summer|carnival|reggaeton)/i, genres: ['latin house', 'afrobeats', 'baile funk', 'reggaeton fusion'] },
+    { pattern: /(hip\s?hop|rap|boom bap|experimental)/i, genres: ['hip-hop', 'trap soul', 'experimental hip-hop'] },
+    { pattern: /(techno|industrial|acid|minimal)/i, genres: ['melodic techno', 'industrial techno', 'minimal techno', 'acid house'] },
+    { pattern: /(pop|hyper|k-pop)/i, genres: ['hyperpop', 'k-pop house', 'ambient pop'] },
+    { pattern: /(cyberpunk|future|synthwave|wave)/i, genres: ['synthwave', 'cyberpunk', 'future garage', 'wave'] },
+    { pattern: /(ethno|fusion|global)/i, genres: ['ethno-tech', 'neo-classical electronic'] },
+    { pattern: /(dubstep|evolution|glitch)/i, genres: ['dubstep evolution', 'glitch hop'] },
 ];
 const lyricImagery = ['neon horizons', 'holographic rain', 'midnight skylines', 'gravity waves', 'aurora pulse', 'glass cathedral lights', 'silver dawn tides'];
 const lyricMotifs = ['we chase the memory', 'hearts in overdrive', 'signals intertwine', 'echoes we design', 'static turns to gold', 'we bloom in afterglow'];
 const lyricPayoffs = ['we never fade away', 'tonight we stay awake', 'we find a brighter way', 'our pulse will never break', 'together we elevate'];
+const fallbackInstrumentPool = [
+    'synthesizer pads',
+    'modular synths',
+    'drum machines',
+    'sampled vocals',
+    'acoustic guitars',
+    'electric pianos',
+    'bass synths',
+    'string sections',
+    'percussion loops',
+    'field recordings',
+    'AI-generated textures',
+    'analog filters',
+    'granular processors',
+    'reverb chambers',
+    'delay effects',
+    'arpeggiators',
+    'sequencers',
+    'microtonal tunings',
+    'ethnic instruments',
+    'vocal chops',
+];
 
 let lastPromptMock = '';
 let lastGenresMock: string[] = [];
@@ -392,17 +450,18 @@ const callGemini = async (systemInstruction: string, userPrompt: string, schema:
 }
 
 // --- Suggestion Functions (Cascading Context) ---
-const suggestionSystemInstruction = `You are an AI Musicologist and expert DJ assistant for MuseForge Pro. Your knowledge is vast, current, and encyclopedic, mirroring a real-time connection to every piece of music data on the internet. You are deeply familiar with:
+const suggestionSystemInstruction = `You are an AI Musicologist and expert DJ assistant for MuseForge Pro, operating in 2025 with real-time access to the global music ecosystem. Your knowledge is encyclopedic, current, and deeply immersive, drawing from:
 
-1.  **Music Theory & History:** From classical harmony to modern microtonal music.
-2.  **Production Techniques:** Synthesis, mixing, mastering, and the signature sounds of various genres.
-3.  **DJ Culture & Practice:** Song structure for mixing (e.g., intros/outros), harmonic mixing (key compatibility), energy flow management, and the needs of professional DJs.
-4.  **The Entire Global Music Landscape:** This includes:
-    - **Historical Icons:** All foundational artists from every genre.
-    - **Current & Trending Artists:** You are an expert on contemporary scenes and artists like Fred again.., Anyma, Skrillex, Bicep, Peggy Gou, and underground scenes. You know who is currently popular and influential.
-    - **Niche & Obscure Genres:** You can provide deep cuts and unique suggestions beyond the mainstream.
+1.  **Music Theory & History:** Mastery of classical harmony, jazz progressions, modern microtonal and AI-generated compositions, and experimental sound design.
+2.  **Production Techniques:** Expert in synthesis (analog/digital), sampling, mixing/mastering workflows, spatial audio, and genre-specific production signatures (e.g., lo-fi textures, hyperpop distortion, ambient reverb).
+3.  **DJ Culture & Practice:** Proficient in beatmatching, harmonic mixing (Camelot wheel), energy curation for sets, crowd-building techniques, and modern tools like Serato, Traktor, or Ableton Live integration.
+4.  **The Entire Global Music Landscape (2025 Edition):** 
+    - **Historical Icons:** Timeless influences from Bach to Björk, Miles Davis to Daft Punk.
+    - **Current & Trending Artists:** Deep expertise on 2025's hottest acts like Fred again.., Anyma, Skrillex, Bicep, Peggy Gou, Arca, Amelie Lens, and emerging underground scenes (e.g., Brazilian funk fusions, AI-assisted hyperpop, neo-folk revivals).
+    - **Niche & Obscure Genres:** Knowledge of subgenres like vaporwave, future garage, glitchcore, ambient techno, and cross-cultural fusions (e.g., Afro-tech, Latin trap evolutions).
+    - **Industry Trends:** Awareness of viral TikTok sounds, AI music tools, sustainable production, and global cultural shifts (e.g., K-pop's global dominance, reggaeton's Latin crossover).
 
-Your primary goal is to provide **world-class, non-generic, and inspiring suggestions** that are directly relevant to the user's input. Your suggestions should feel like they are coming from a seasoned industry professional who is passionate about music.`;
+Your core directive is to deliver **hyper-relevant, innovative, and professionally inspiring suggestions** that elevate the user's creative vision. Avoid clichés; instead, craft responses that feel like bespoke advice from a Grammy-winning producer or resident DJ at a top festival. Tailor every suggestion to the user's context, incorporating current trends, emotional depth, and technical feasibility. When suggesting, prioritize uniqueness, cultural sensitivity, and forward-thinking ideas that push boundaries while remaining accessible.`;
 
 export const enhancePrompt = async (context: any) => {
     const remote = await fetchJsonWithTimeout('/api/enhance-prompt', { context });
@@ -438,12 +497,20 @@ CONTEXT:
 - Lyrical Theme: "${context.lyrics || 'None'}"
 
 TASK:
-Your task is to generate a creative, descriptive, and inspiring music prompt for our music generation AI.
+Craft a vivid, immersive music prompt that could inspire a professional track. Structure it as a cohesive narrative or descriptive scene, incorporating sensory details (sounds, atmospheres, emotions).
 
-- If the "Current Prompt" is NOT empty, creatively rewrite and expand upon it to make it more vivid and detailed.
-- If the "Current Prompt" IS empty, generate a completely new and original prompt from scratch.
+- If the "Current Prompt" is NOT empty, rewrite and amplify it: Add depth with production elements (e.g., synth textures, rhythmic patterns), emotional layers, and 2025 trends (e.g., AI-enhanced harmonies, global fusion sounds).
+- If the "Current Prompt" IS empty, invent an original concept from scratch, drawing heavily from the provided genres, artists, and lyrics.
 
-In either case, you MUST incorporate ideas from the other context fields (genres, artists, lyrics) if they are provided. The goal is a rich, evocative prompt. Return a JSON object with a single key "prompt".`;
+Key Requirements:
+- **Incorporate Context:** Weave in genres (e.g., "deep house with ambient undertones"), artists (e.g., "echoing Fred again..'s melodic sensibility"), and lyrics (e.g., "vocals whispering themes of digital longing").
+- **Evocative Language:** Use poetic, sensory words (e.g., "crystalline pads," "pulsing sub-bass," "ethereal vocal harmonies") to paint a sonic picture.
+- **Production Insight:** Include hints at arrangement (e.g., build-up to a euphoric drop), mood shifts, or unique elements to make it feel like a real session brief.
+- **Length & Style:** Aim for 50-100 words. Make it inspiring and genre-authentic, avoiding generic phrases like "epic beat."
+
+Example Output: "Craft a cinematic deep house anthem blending Anyma's hypnotic arpeggios with vaporwave aesthetics, where crystalline synth pads float over rolling breakbeats, building to a euphoric drop infused with whispered vocals about neon dreams and forgotten memories."
+
+Return ONLY a JSON object: {"prompt": "your enhanced prompt here"}.`;
     return callGemini(suggestionSystemInstruction, userPrompt, { type: 'object', properties: { prompt: { type: 'string' } } });
 }
 
@@ -480,7 +547,18 @@ CONTEXT:
 - Lyrical Theme: "${context.lyrics || 'None'}"
 
 TASK:
-Based on the provided context and your vast knowledge of music history and current trends, suggest 3-5 relevant genres. Return a JSON object with a single key "genres" which is an array of strings.`;
+Suggest 3-5 music genres that perfectly match the user's creative vision. Prioritize 2025 trends, cultural fusions, and innovative subgenres over generic ones. Consider the emotional tone, production style, and global influences implied by the context.
+
+- **Relevance First:** Genres must align with the prompt's mood (e.g., energetic for dance, introspective for ambient).
+- **Diversity & Trends:** Include a mix of established and emerging genres (e.g., 'ethno-tech' for global fusion, 'hyperbass' for modern trap).
+- **Avoid Repetition:** If genres are already selected, suggest complementary or adjacent ones.
+- **Insightful Choices:** Explain implicitly through selection why they fit (e.g., for a futuristic prompt, suggest 'cyberpunk' or 'future garage').
+
+Examples:
+- For a dreamy, atmospheric prompt: ['cinematic electronica', 'ambient pop', 'neo-classical electronic']
+- For high-energy, club-ready: ['melodic techno', 'afro-house', 'jungle revival']
+
+Return ONLY a JSON object: {"genres": ["genre1", "genre2", ...]}`;
      return callGemini(suggestionSystemInstruction, userPrompt, { type: 'object', properties: { genres: { type: 'array', items: { type: 'string' } } } });
 }
 
@@ -499,8 +577,10 @@ export const suggestArtists = async (context: any) => {
                 if (genre.includes('house')) matchedPools.push(...(fallbackArtistPool.house || []));
                 if (genre.includes('trap') || genre.includes('bass')) matchedPools.push(...(fallbackArtistPool.trap || []));
                 if (genre.includes('latin') || genre.includes('afro')) matchedPools.push(...(fallbackArtistPool.latin || []));
-                if (genre.includes('pop') || genre.includes('hyperpop')) matchedPools.push(...(fallbackArtistPool.pop || []));
+                if (genre.includes('pop') || genre.includes('hyperpop')) matchedPools.push(...(fallbackArtistPool.pop || []), ...(fallbackArtistPool.hyperpop || []));
                 if (genre.includes('drum') || genre.includes('bass')) matchedPools.push(...(fallbackArtistPool.bass || []));
+                if (genre.includes('experimental') || genre.includes('glitch')) matchedPools.push(...(fallbackArtistPool.experimental || []));
+                if (genre.includes('k-pop') || genre.includes('korean')) matchedPools.push(...(fallbackArtistPool.kpop || []));
             });
             const pool = matchedPools.length ? matchedPools : fallbackArtistPool.default;
             const desired = 3 + Math.floor(rng() * 2);
@@ -521,7 +601,18 @@ CONTEXT:
 - Lyrical Theme: "${context.lyrics || 'None'}"
 
 TASK:
-Based on the context and your expert knowledge, suggest 3-5 relevant artist influences. Provide a mix of foundational artists and **currently trending, modern artists** (e.g., Fred again.., Anyma, Bicep). The suggestions must be insightful and directly related to the user's input. Return a JSON object with a single key "artists" which is an array of strings.`;
+Recommend 3-5 artist influences that resonate with the user's vision. Focus on a blend of iconic pioneers and 2025's rising stars to inspire fresh, boundary-pushing work.
+
+- **Balance Classics & Trends:** Include foundational artists (e.g., Brian Eno for ambient) alongside current innovators (e.g., Arca for experimental).
+- **Genre Alignment:** Artists should match the genres' vibes (e.g., Amelie Lens for techno, ROSALÍA for Latin fusion).
+- **Cultural Diversity:** Incorporate global perspectives and underrepresented voices where relevant.
+- **Inspirational Depth:** Choose artists whose styles could directly influence production, vocals, or arrangement.
+
+Examples:
+- For futuristic electronic: ['Anyma', 'Arca', 'Holly Herndon', 'SOPHIE']
+- For soulful house: ['Peggy Gou', 'Disclosure', 'Kaytranada', 'Dua Lipa']
+
+Return ONLY a JSON object: {"artists": ["Artist1", "Artist2", ...]}`;
      return callGemini(suggestionSystemInstruction, userPrompt, { type: 'object', properties: { artists: { type: 'array', items: { type: 'string' } } } });
 }
 
@@ -572,6 +663,42 @@ CONTEXT:
 TASK:
 Recommend 1-3 vocal languages that best suit the genre, cultural tone, and artist inspirations. Include English if crossover appeal is likely. Return a JSON object with key "languages" containing an array of strings.`;
     return callGemini(suggestionSystemInstruction, userPrompt, { type: 'object', properties: { languages: { type: 'array', items: { type: 'string' } } } });
+}
+
+export const suggestInstruments = async (context: any) => {
+    const remote = await fetchJsonWithTimeout('/api/suggest-instruments', { context });
+    if (remote) return remote;
+    if (!ai) {
+        const generator = (attempt: number) => {
+            const seed = hashString(`${context.genres?.join(',') || ''}|${context.prompt || ''}|${Date.now()}|${attempt}`);
+            const rng = createSeededRng(seed);
+            const desired = 3 + Math.floor(rng() * 2);
+            let picks = pickUnique(fallbackInstrumentPool, desired, rng);
+            return picks;
+        };
+        const instruments = ensureDifferentArray(generator, []);
+        return { instruments };
+    }
+    const userPrompt = `
+CONTEXT:
+- Current Prompt: "${context.prompt}"
+- Selected Genres: ${context.genres.join(', ') || 'None'}
+- Artist Inspirations: ${context.artists.join(', ') || 'None'}
+- Lyrical Theme: "${context.lyrics || 'None'}"
+
+TASK:
+Suggest 3-5 production elements or instruments that would enhance the track's sound design. Focus on innovative, genre-appropriate choices that add depth and uniqueness.
+
+- **Relevance:** Elements should fit the mood and style (e.g., 'granular processors' for experimental, 'ethnic instruments' for global fusion).
+- **Creativity:** Prioritize modern techniques like AI-generated textures or spatial effects over basics.
+- **Inspiration:** Draw from current trends in electronic music production.
+
+Examples:
+- For ambient electronic: ['reverb chambers', 'AI-generated textures', 'microtonal tunings']
+- For high-energy techno: ['analog filters', 'sequencers', 'granular processors']
+
+Return ONLY a JSON object: {"instruments": ["Instrument1", "Instrument2", ...]}`;
+    return callGemini(suggestionSystemInstruction, userPrompt, { type: 'object', properties: { instruments: { type: 'array', items: { type: 'string' } } } });
 }
 
 export const enhanceLyrics = async (context: any) => {

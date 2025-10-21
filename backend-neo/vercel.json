@@ -6,5 +6,6 @@
     }
   },
   "buildCommand": "echo 'No build needed'",
-  "installCommand": "npm install --only=production"
+  "installCommand": "npm install --only=production",
+  "ignoreCommand": "echo 'Skip TypeScript build'"
 }

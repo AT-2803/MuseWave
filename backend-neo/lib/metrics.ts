@@ -39,3 +39,7 @@ export const rateLimitRejects = new Counter({
 export async function incrementRequests(): Promise<void> {
   httpRequests.inc();
 }
+
+export async function getMetrics(): Promise<string> {
+  return await register.metrics();
+}

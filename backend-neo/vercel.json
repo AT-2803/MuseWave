@@ -1,14 +1,14 @@
 {
   "version": 2,
   "functions": {
-    "api.js": {
+    "api.ts": {
       "runtime": "nodejs20.x"
     }
   },
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api.js"
+      "dest": "/api.ts"
     }
   ],
   "buildCommand": "echo 'No build needed'",

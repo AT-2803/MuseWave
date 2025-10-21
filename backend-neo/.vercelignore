@@ -1,5 +1,0 @@
-src/
-dist/
-scripts/
-*.ts
-!api/**/*.js

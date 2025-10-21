@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.8.7",
-    "@types/uuid": "^10.0.1",
+    "@types/uuid": "^9.0.8",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3",
     "vercel": "^37.11.0"

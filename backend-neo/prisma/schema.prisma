@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ApiKey {
+  id              String        @id @default(cuid())
+  key             String        @unique
+  owner           String
+  rateLimitPerMin Int           @default(60)
+  createdAt       DateTime      @default(now())
+  disabledAt      DateTime?
+  jobs            Job[]         @relation("ApiKeyJobs")
+  usages          Usage[]
+  rateCounters    RateCounter[]
+}
+
+model Job {
+  id          String   @id @default(cuid())
+  type        String
+  status      String   @default("queued")
+  params      Json
+  result      Json?
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(3)
+  error       String?
+  parentId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  assets      Asset[]
+  apiKey      ApiKey?  @relation("ApiKeyJobs", fields: [apiKeyId], references: [id])
+  apiKeyId    String?
+}
+
+model Asset {
+  id          String   @id @default(cuid())
+  kind        String
+  mime        String
+  path        String
+  durationSec Float?
+  meta        Json?
+  createdAt   DateTime @default(now())
+  job         Job      @relation(fields: [jobId], references: [id])
+  jobId       String
+}
+
+model Usage {
+  id          String   @id @default(cuid())
+  apiKey      ApiKey   @relation(fields: [apiKeyId], references: [id])
+  apiKeyId    String
+  units       Int
+  category    String
+  note        String?
+  createdAt   DateTime @default(now())
+}
+
+model RateCounter {
+  id            String   @id @default(cuid())
+  apiKey        ApiKey   @relation(fields: [apiKeyId], references: [id])
+  apiKeyId      String
+  windowStartMs BigInt
+  tokens        Int
+}

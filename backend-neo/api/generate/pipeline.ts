@@ -142,9 +142,39 @@ async function processGeneration(jobId: string, params: GenerateInput) {
       const videoPath = `/tmp/video_${jobId}.mp4`;
       const videoStyle = params.videoStyles?.[0] || 'Abstract Visualizer';
       
-      // Generate appropriate image for video background
-      const imagePath = `/tmp/bg_${jobId}.png`;
-      // TODO: Generate or fetch background image
+      // Generate background image using canvas rendering
+      const { createCanvas } = await import('canvas');
+      const canvas = createCanvas(1920, 1080);
+      const ctx = canvas.getContext('2d');
+      
+      // Create gradient background based on video style
+      const gradient = ctx.createLinearGradient(0, 0, 1920, 1080);
+      if (videoStyle.toLowerCase().includes('abstract')) {
+        gradient.addColorStop(0, '#6366f1');
+        gradient.addColorStop(0.5, '#8b5cf6');
+        gradient.addColorStop(1, '#d946ef');
+      } else if (videoStyle.toLowerCase().includes('lyric')) {
+        gradient.addColorStop(0, '#0f172a');
+        gradient.addColorStop(0.5, '#1e293b');
+        gradient.addColorStop(1, '#334155');
+      } else {
+        gradient.addColorStop(0, '#0ea5e9');
+        gradient.addColorStop(0.5, '#06b6d4');
+        gradient.addColorStop(1, '#14b8a6');
+      }
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 1920, 1080);
+      
+      // Add title overlay
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.font = 'bold 72px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(params.musicPrompt.substring(0, 40), 960, 540);
+      
+      // Save to file
+      const buffer = canvas.toBuffer('image/png');
+      await writeFile(imagePath, buffer);
       
       await renderVideo({
         audio: mixPath,

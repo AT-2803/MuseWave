@@ -16,52 +16,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Invalid duration (must be 30-600 seconds)' });
     }
 
-    // Generate a realistic job ID
-    const jobId = `job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Forward request to backend-neo which has the real implementation
+    const backendUrl = process.env.BACKEND_NEO_URL || 'http://localhost:3001';
+    
+    const response = await fetch(`${backendUrl}/api/generate/pipeline`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        musicPrompt,
+        genres: genres || [],
+        duration,
+        artistInspiration,
+        lyrics,
+        generateVideo,
+        videoStyles,
+      }),
+    });
 
-    // Build a mock plan that matches frontend expectations
-    const genresList = Array.isArray(genres) && genres.length > 0 ? genres : ['electronic'];
-    const bpm = genresList.includes('drum & bass') ? 174 
-              : genresList.includes('techno') ? 128
-              : genresList.includes('lofi hip hop') ? 80
-              : 120;
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Backend request failed' }));
+      return res.status(response.status).json(error);
+    }
 
-    const mockPlan = {
-      title: musicPrompt.split(' ').slice(0, 4).join(' ') + '...',
-      genre: genresList[0],
-      duration_sec: duration,
-      bpm,
-      key: 'C Minor',
-      sections: ['Intro', 'Verse', 'Chorus', 'Breakdown', 'Outro'],
-      bars_per_section: 8,
-      chord_progressions: {
-        'Intro': ['Cm7', 'Abmaj7', 'Eb', 'Bb'],
-        'Verse': ['Cm7', 'Abmaj7', 'Eb', 'Bb'],
-        'Chorus': ['Fm7', 'Cm7', 'Abmaj7', 'Bb'],
-        'Breakdown': ['Abmaj7', 'Bb'],
-        'Outro': ['Cm7', 'Abmaj7']
-      },
-      lyrics_lines: lyrics ? [
-        { section: 'Verse', text: lyrics.split('\n')[0] || 'Verse lyrics...' },
-        { section: 'Chorus', text: lyrics.split('\n')[1] || 'Chorus lyrics...' }
-      ] : [],
-      artist_style_notes: artistInspiration || ['Atmospheric', 'Melodic'],
-      instrumentation: ['Synth Pads', 'Bass', 'Drums', 'Lead'],
-      arrangement_notes: ['Build tension in breakdown', 'Drop at chorus'],
-      energy_curve: [
-        { section: 'Intro', level: 0.3 },
-        { section: 'Verse', level: 0.5 },
-        { section: 'Chorus', level: 0.9 },
-        { section: 'Breakdown', level: 0.4 },
-        { section: 'Outro', level: 0.2 }
-      ]
-    };
-
-    res.status(200).json({
-      jobId,
-      plan: mockPlan,
+    const data = await response.json();
+    
+    res.status(202).json({
+      jobId: data.jobId,
+      message: data.message || 'Generation started',
       status: 'processing'
     });
+    
   } catch (error) {
     console.error('Pipeline error:', error);
     res.status(500).json({ 

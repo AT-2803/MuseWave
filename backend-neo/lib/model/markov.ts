@@ -47,13 +47,83 @@ export function sample(model: NgramModel, len: number, seed?: number): { degree:
 }
 
 export async function seedNgramModel(): Promise<void> {
-  // Placeholder: in practice, load MIDI files and train
+  // Train n-gram model from MIDI file library
+  try {
+    const { readdir, readFile: readFilePromise } = await import('fs/promises');
+    const { parseMidi } = await import('midi-file');
+    const { join } = await import('path');
+    
+    const midiDir = process.env.MIDI_LIBRARY_PATH || './data/midi';
+    
+    try {
+      const files = await readdir(midiDir);
+      const midiFiles = files.filter(f => f.endsWith('.mid') || f.endsWith('.midi'));
+      
+      if (midiFiles.length === 0) {
+        console.warn('[Markov] No MIDI files found, using default sample');
+        return trainDefaultModel();
+      }
+      
+      const allTokens: { degree: number; duration: number }[] = [];
+      
+      for (const file of midiFiles.slice(0, 100)) { // Limit to 100 files
+        try {
+          const path = join(midiDir, file);
+          const buffer = await readFilePromise(path);
+          const midi = parseMidi(buffer);
+          
+          // Extract note events from MIDI tracks
+          midi.tracks.forEach(track => {
+            let currentTick = 0;
+            track.forEach(event => {
+              currentTick += event.deltaTime;
+              if (event.type === 'noteOn' && event.velocity > 0) {
+                const degree = event.noteNumber % 12; // Normalize to scale degree
+                const duration = event.deltaTime / midi.header.ticksPerBeat; // Convert to beats
+                if (duration > 0 && duration < 8) { // Filter out invalid durations
+                  allTokens.push({ degree, duration: Math.round(duration * 2) / 2 }); // Quantize to half beats
+                }
+              }
+            });
+          });
+        } catch (fileError) {
+          console.warn(`[Markov] Error parsing ${file}:`, fileError);
+        }
+      }
+      
+      if (allTokens.length < 100) {
+        console.warn('[Markov] Insufficient MIDI data, using default model');
+        return trainDefaultModel();
+      }
+      
+      const model = train(allTokens, 3);
+      
+      // Save model to database or cache
+      // For now, just log success
+      console.log(`[Markov] Trained model from ${midiFiles.length} MIDI files with ${allTokens.length} tokens`);
+      
+    } catch (dirError) {
+      console.warn('[Markov] MIDI directory not accessible, using default model:', dirError);
+      return trainDefaultModel();
+    }
+    
+  } catch (error) {
+    console.error('[Markov] Model training failed:', error);
+    return trainDefaultModel();
+  }
+}
+
+function trainDefaultModel() {
   const sampleTokens = [
     { degree: 0, duration: 1 }, { degree: 2, duration: 1 }, { degree: 4, duration: 2 },
+    { degree: 5, duration: 1 }, { degree: 7, duration: 1 }, { degree: 9, duration: 2 },
     { degree: 0, duration: 1 }, { degree: 2, duration: 1 }, { degree: 4, duration: 2 },
+    { degree: 0, duration: 0.5 }, { degree: 4, duration: 0.5 }, { degree: 7, duration: 1 },
+    { degree: 5, duration: 0.5 }, { degree: 9, duration: 0.5 }, { degree: 11, duration: 2 },
   ];
-  const model = train(sampleTokens);
-  // Save to DB or file
+  const model = train(sampleTokens, 2);
+  console.log('[Markov] Using default sample model');
+  return model;
 }
 
 function xorshift(seed: number) {

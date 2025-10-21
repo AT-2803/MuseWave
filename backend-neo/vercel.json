@@ -1,11 +1,16 @@
 {
   "version": 2,
   "functions": {
-    "api/**/*.js": {
+    "api.js": {
       "runtime": "nodejs20.x"
     }
   },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api.js"
+    }
+  ],
   "buildCommand": "echo 'No build needed'",
-  "installCommand": "npm install --only=production",
-  "ignoreCommand": "echo 'Skip TypeScript build'"
+  "installCommand": "npm install --only=production"
 }

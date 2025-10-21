@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node dist/index.js",
-    "dev": "tsx src/index.ts",
+    "dev": "tsx src_disabled/index.ts",
     "release": "tsx scripts/release.ts",
     "vercel:deploy": "npx vercel deploy --prod --prebuilt --token=$VERCEL_TOKEN",
     "git:push": "tsx scripts/release.ts --git-only",

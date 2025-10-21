@@ -86,82 +86,17 @@ const createTextDataUri = (text: string, mime = 'text/plain') =>
   `data:${mime};base64,${encodeBase64(text)}`;
 
 export async function startGeneration(payload: Record<string, unknown>) {
-  const jobId = `mock-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-  console.info('[MuseWave] Mock orchestrator starting job', jobId, payload);
-
-  const plan = buildMockPlan(payload);
-
-  const storyboardCatalog: Record<string, string> = {
-    lyrical: 'Neon lyric typography that pulses with every downbeat.',
-    official: 'A night-drive through a futuristic city skyline.',
-    abstract: 'Particles and waves reacting to the bass line.',
-  };
-
-  const aliasMap: Record<string, string> = {
-    lyric: 'lyrical',
-    lyrics: 'lyrical',
-    'lyric-video': 'lyrical',
-  };
-
-  const rawStyles = Array.isArray(payload.videoStyles)
-    ? (payload.videoStyles as unknown[])
-        .map((style) => String(style).trim().toLowerCase())
-        .filter(Boolean)
-    : [];
-
-  const normalizedStyles = Array.from(
-    new Set(rawStyles.map((style) => aliasMap[style] ?? style))
-  ).filter((style) => Object.prototype.hasOwnProperty.call(storyboardCatalog, style));
-
-  const wantsVideo = Boolean(payload.generateVideo) && normalizedStyles.length > 0;
-  const selectedStyles = wantsVideo ? normalizedStyles : [];
-  const stages = wantsVideo
-    ? BASE_STAGES
-    : BASE_STAGES.filter((stage) => stage.status !== 'rendering-video');
-
-  const duration = Number(payload.duration) || plan?.duration_sec || 90;
-  const lyrics =
-    (payload.lyrics as string) ||
-    (plan?.lyrics_lines && plan.lyrics_lines.map((l: any) => l.text).join('\n')) ||
-    '';
-
-  const initialVideoUrls = wantsVideo
-    ? Object.fromEntries(
-        selectedStyles.map((style) => [
-          style,
-          createTextDataUri(`Rendering ${style} video...`, 'text/plain'),
-        ])
-      )
-    : null;
-
-  const result: OrchestratorResult = {
-    audioUrl: createMusicWavDataUri(plan, duration, lyrics),
-    videoUrls: initialVideoUrls,
-    plan: {
-      ...plan,
-      video_storyboard: wantsVideo
-        ? Object.fromEntries(selectedStyles.map((style) => [style, storyboardCatalog[style]]))
-        : undefined,
-    },
-  };
-
-  const jobEntry: MockJob = {
-    plan,
-    result,
-    timers: [],
-    stages,
-    wantsVideo,
-  };
-
-  jobs.set(jobId, jobEntry);
-
-  if (wantsVideo && selectedStyles.length > 0) {
-    generateVideoPreviews(jobId, selectedStyles, storyboardCatalog, duration).catch((error) =>
-      console.warn('[MuseWave] Unable to create video previews', error)
-    );
+  // Call backend API
+  const response = await fetch('/api/generate/pipeline', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    throw new Error(`Generation failed: ${response.statusText}`);
   }
-
-  return { jobId, plan };
+  const data = await response.json();
+  return { jobId: data.jobId, plan: null }; // Backend doesn't return plan immediately
 }
 
 export function subscribeToJob(
@@ -169,58 +104,61 @@ export function subscribeToJob(
   onEvent: (event: OrchestratorEvent) => void,
   onError: (err: any) => void
 ) {
-  const job = jobs.get(jobId);
-  if (!job) {
-    onError(new Error('Job not found'));
-    return {
-      close() {
-        /* noop */
-      },
-    };
-  }
-
-  const stages = job.stages && job.stages.length ? job.stages : BASE_STAGES;
-  const timers: number[] = [];
-
-  stages.forEach((stage, index) => {
-    const delay = 400 + index * 550;
-    const pct = Math.round(((index + 1) / (stages.length + 1)) * 90);
-    const timerId = setTimeoutFn(() => {
-      onEvent({ status: stage.status, label: stage.label, pct });
-      console.info('[MuseWave] Stage update', { jobId, status: stage.status, pct });
-    }, delay);
-    timers.push(timerId as unknown as number);
-  });
-
-  const completionTimer = setTimeoutFn(() => {
-    onEvent({ status: 'finalizing', label: 'Wrapping up final touches...', pct: 96 });
-    console.info('[MuseWave] Stage update', { jobId, status: 'finalizing', pct: 96 });
-  }, 400 + stages.length * 550 + 500);
-  timers.push(completionTimer as unknown as number);
-
-  const doneTimer = setTimeoutFn(() => {
-    onEvent({ status: 'complete', pct: 100 });
-    console.info('[MuseWave] Job complete', jobId);
-  }, 400 + stages.length * 550 + 1200);
-  timers.push(doneTimer as unknown as number);
-
-  job.timers = timers;
-
+  let polling = true;
+  const poll = async () => {
+    if (!polling) return;
+    try {
+      const response = await fetch(`/api/jobs/${jobId}`);
+      if (!response.ok) {
+        throw new Error(`Job fetch failed: ${response.statusText}`);
+      }
+      const job = await response.json();
+      if (job.status === 'succeeded') {
+        onEvent({ status: 'complete', pct: 100 });
+      } else if (job.status === 'failed') {
+        onEvent({ status: 'error', error: job.error });
+      } else {
+        // Map backend status to frontend
+        const statusMap: Record<string, string> = {
+          running: 'generating-instruments', // or whatever
+        };
+        onEvent({ status: statusMap[job.status] || job.status, pct: 50 }); // approximate
+      }
+      if (job.status === 'succeeded' || job.status === 'failed') {
+        polling = false;
+      } else {
+        setTimeout(poll, 2000); // poll every 2s
+      }
+    } catch (err) {
+      onError(err);
+      polling = false;
+    }
+  };
+  poll();
   return {
     close() {
-      job.timers.forEach((id) => clearTimeoutFn(id));
-      job.timers = [];
+      polling = false;
     },
   };
 }
 
 export async function fetchJobResult(jobId: string): Promise<OrchestratorResult> {
-  const job = jobs.get(jobId);
-  if (!job) {
-    return { error: 'Job not found' };
+  const response = await fetch(`/api/jobs/${jobId}`);
+  if (!response.ok) {
+    return { error: `Fetch failed: ${response.statusText}` };
   }
-  console.info('[MuseWave] Returning mock job result', jobId);
-  return job.result;
+  const job = await response.json();
+  if (job.status === 'succeeded') {
+    return {
+      audioUrl: job.result ? `/api/assets/${job.result}` : null,
+      videoUrls: null, // TODO
+      plan: null, // TODO
+    };
+  } else if (job.status === 'failed') {
+    return { error: job.error };
+  } else {
+    return { error: 'Job not complete' };
+  }
 }
 
 async function generateVideoPreviews(

@@ -63,3 +63,14 @@ try {
   console.error('[MuseWave] Fatal render error', err);
   showFatalError(`Fatal render error:\n\n${err && err.stack ? err.stack : String(err)}`);
 }
+
+// Register service worker for autoupdates
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then((registration) => {
+      console.log('SW registered: ', registration);
+    }).catch((registrationError) => {
+      console.log('SW registration failed: ', registrationError);
+    });
+  });
+}

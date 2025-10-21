@@ -11,7 +11,8 @@ import { healthRoute } from './routes/health.js';
 import { metricsRoute } from './routes/metrics.js';
 import { generateRoute } from './routes/generate.js';
 import { jobsRoute } from './routes/jobs.js';
-import { suggestionRoute } from './routes/suggestions.js';
+import { assetsRoute } from './routes/assets';
+import { suggestionRoute } from './routes/suggestions';
 import { Queue } from './queue/queue.js';
 
 declare module 'fastify' {

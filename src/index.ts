@@ -1,26 +1,28 @@
-import 'dotenv/config';
-import { config } from './config';
-import { buildServer } from './server';
-import { logger } from './logger';
-import { ensureFfmpeg } from './plugins/ffmpeg';
-import { queue } from './queue/queue';
-import { registerWorkers } from './queue/workers';
+import fastify from 'fastify';
+import { healthRoute } from './api/health.js';
+import { seedRoute } from './api/model/seed.js';
+import { planRoute } from './api/generate/plan.js';
+import { audioRoute } from './api/generate/audio.js';
+import { vocalsRoute } from './api/generate/vocals.js';
+import { mixRoute } from './api/generate/mix.js';
+import { videoRoute } from './api/generate/video.js';
+import { pipelineRoute } from './api/generate/pipeline.js';
+import { jobRoute } from './api/jobs/[id].js';
+import { assetRoute } from './api/assets/[id].js';
+import { metricsRoute } from './api/metrics.js';
 
-async function main() {
-  const ffmpegOk = await ensureFfmpeg();
-  if (!ffmpegOk) {
-    logger.warn('ffmpeg/ffprobe missing - generation will fail');
-  }
+const app = fastify({ logger: true });
 
-  const server = await buildServer();
-  registerWorkers(queue);
-  await queue.start();
+app.register(healthRoute);
+app.register(seedRoute, { prefix: '/api/model' });
+app.register(planRoute, { prefix: '/api/generate' });
+app.register(audioRoute, { prefix: '/api/generate' });
+app.register(vocalsRoute, { prefix: '/api/generate' });
+app.register(mixRoute, { prefix: '/api/generate' });
+app.register(videoRoute, { prefix: '/api/generate' });
+app.register(pipelineRoute, { prefix: '/api/generate' });
+app.register(jobRoute, { prefix: '/api/jobs' });
+app.register(assetRoute, { prefix: '/api/assets' });
+app.register(metricsRoute);
 
-  const address = await server.listen({ port: config.port, host: '0.0.0.0' });
-  logger.info({ address }, 'Server listening');
-}
-
-main().catch((error) => {
-  logger.error({ error }, 'Fatal startup error');
-  process.exit(1);
-});
+export default app;

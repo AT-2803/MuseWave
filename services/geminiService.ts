@@ -472,18 +472,101 @@ export const enhancePrompt = async (context: any) => {
                 `${context.prompt || ''}|${context.genres?.join(',') || ''}|${context.artists?.join(',') || ''}|${context.lyrics || ''}|${Date.now()}|${attempt}`
             );
             const rng = createSeededRng(seed);
-            const genreFocus =
-                context.genres && context.genres.length
-                    ? context.genres.join(' / ')
-                    : pickUnique(fallbackGenrePool, 2, rng).join(' / ');
-            const artistLine =
-                context.artists && context.artists.length
-                    ? `Inspired by ${context.artists.join(', ')}`
-                    : `Channeling ${pickUnique(fallbackArtistPool.default, 2, rng).join(' & ')}`;
-            const groove = pickUnique(promptGrooves, 1, rng)[0];
-            const setting = pickUnique(promptSettings, 1, rng)[0];
-            const textures = pickUnique(promptTextures, 2, rng);
-            return `Forge a ${genreFocus} anthem with a ${groove}, ${artistLine}. Set it within a ${setting}, weaving ${textures[0]} and ${textures[1]} around ${context.lyrics ? 'lyrical themes about ' + context.lyrics.slice(0, 80) : 'wordless vocal atmospherics'}.`;
+            
+            // If user has entered something, enhance it creatively
+            if (context.prompt && context.prompt.trim().length > 0) {
+                const enhancements = [
+                    'with cascading arpeggios and ethereal vocal layers',
+                    'blending hypnotic basslines with shimmering synth textures',
+                    'featuring evolving pads and glitchy percussion',
+                    'layered with crystalline melodies and deep sub-bass',
+                    'infused with atmospheric drones and stuttering hi-hats',
+                    'combining organic instrumentation with digital soundscapes',
+                    'featuring cinematic builds and euphoric drops',
+                    'with pulsing rhythms and soaring melodic hooks',
+                    'blending vintage analog warmth with modern production',
+                    'layered with spatial reverbs and granular synthesis'
+                ];
+                
+                const moods = [
+                    'melancholic yet hopeful',
+                    'energetic and euphoric',
+                    'dark and atmospheric',
+                    'dreamy and introspective',
+                    'raw and emotive',
+                    'ethereal and transcendent',
+                    'hypnotic and mesmerizing',
+                    'intense and driving',
+                    'lush and immersive',
+                    'minimalist yet impactful'
+                ];
+                
+                const contexts = [
+                    'perfect for late-night drives through neon-lit cities',
+                    'evoking memories of forgotten summer nights',
+                    'capturing the essence of urban solitude',
+                    'painting sonic landscapes of distant futures',
+                    'channeling the energy of underground club culture',
+                    'exploring themes of digital consciousness',
+                    'celebrating human connection in a fractured world',
+                    'embodying the spirit of creative rebellion',
+                    'narrating stories of transformation and growth',
+                    'reflecting the beauty in chaos and complexity'
+                ];
+                
+                const enhancement = pickUnique(enhancements, 1, rng)[0];
+                const mood = pickUnique(moods, 1, rng)[0];
+                const contextLine = pickUnique(contexts, 1, rng)[0];
+                
+                return `${context.prompt.trim()}, ${enhancement}. Create a ${mood} atmosphere ${contextLine}.`;
+            }
+            
+            // If empty, generate completely original creative prompts
+            const originalPrompts = [
+                'A hypnotic journey through digital consciousness, where glitching 808s meet celestial pads, building tension with whispered vocals before erupting into a bass-heavy drop that shatters reality',
+                'Cinematic techno odyssey blending orchestral strings with industrial percussion, telling the story of a neon-soaked metropolis awakening at 3 AM',
+                'Ethereal downtempo exploration featuring kalimbas layered over deep sub-bass, with reversed vocals creating an otherworldly atmosphere of nostalgic longing',
+                'High-energy drum & bass fusion where liquid melodies dance over breakneck breaks, punctuated by soulful vocal chops and analog synth stabs',
+                'Ambient house meditation combining field recordings of ocean waves with warm Rhodes keys and subtle acid basslines, perfect for sunrise sessions',
+                'Dark synthwave narrative driven by pulsing arpeggios and vocoded storytelling, evoking cyberpunk dystopias and digital romance',
+                'Organic electronica blending live tabla rhythms with granular synthesis, creating a bridge between ancient traditions and future sounds',
+                'Melodic techno anthem where soaring lead melodies cascade over relentless kick patterns, building euphoria through layered vocal harmonies',
+                'Experimental bass music featuring chopped jazz samples, glitchy percussion, and evolving chord progressions that challenge genre boundaries',
+                'Lo-fi hip hop meets ambient jazz, with dusty vinyl crackle, melancholic piano loops, and tape-saturated drums creating intimate late-night vibes',
+                'Progressive trance journey beginning with delicate plucks and building through emotional breakdowns to peak-time euphoria with layered synths',
+                'Afro-house celebration fusing traditional percussion patterns with deep bass grooves and hypnotic vocal loops, radiating infectious energy',
+                'Minimal techno meditation where sparse kick patterns and subtle hi-hat variations create space for evolving timbral textures and micro-melodies',
+                'Future garage soundscape combining shuffled breaks with pitched vocal fragments, creating bittersweet nostalgia through reverb-drenched atmospheres',
+                'Breakbeat hardcore revival channeling 90s rave energy with modern production, featuring chopped amens, hoover synths, and euphoric piano stabs'
+            ];
+            
+            const genreSpecificPrompts = [
+                'techno: Driving hypnotic techno with modular synth sequences evolving over 16 minutes, building from minimal kicks to full psychedelic assault',
+                'house: Deep house groovewith soulful vocal samples, warm bass, and jazzy chord progressions, perfect for golden hour dancefloors',
+                'ambient: Vast ambient soundscape using granular synthesis and field recordings, creating sonic environments that blur time and space',
+                'drum & bass: Neurofunk roller with reese bass mutations and razor-sharp breaks, punctuated by cinematic strings and vocal stabs',
+                'dubstep: Dark dubstep journey from minimal intro through lurching half-time to devastating drops with metallic bass design',
+                'trap: Hard-hitting trap banger with 808 slides, crisp hi-hat rolls, and haunting melodic samples creating street anthem energy',
+                'trance: Uplifting trance epic featuring emotional breakdowns, soaring arpeggios, and euphoric hands-in-the-air moments',
+                'bass: Experimental bass music exploring the space between genres with complex sound design and unpredictable rhythmic patterns'
+            ];
+            
+            // Use genre-specific prompts if genres are provided
+            if (context.genres && context.genres.length > 0) {
+                const userGenres = context.genres.map((g: string) => g.toLowerCase());
+                const matchingPrompts = genreSpecificPrompts.filter(prompt => {
+                    const genreKey = prompt.split(':')[0];
+                    return userGenres.some((ug: string) => ug.includes(genreKey) || genreKey.includes(ug));
+                });
+                
+                if (matchingPrompts.length > 0) {
+                    const selected = pickUnique(matchingPrompts, 1, rng)[0];
+                    return selected.split(': ')[1]; // Return only the prompt part
+                }
+            }
+            
+            // Fall back to original prompts
+            return pickUnique(originalPrompts, 1, rng)[0];
         };
         const prompt = ensureDifferentString(generator, lastPromptMock);
         lastPromptMock = prompt;

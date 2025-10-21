@@ -1,51 +1,49 @@
-import { Router } from 'express';
+import { FastifyPluginAsync } from 'fastify';
 import { enhancePrompt, suggestGenres, suggestArtists, suggestLanguages, enhanceLyrics } from '../services/geminiService';
 
-const router = Router();
+export const suggestionRoute: FastifyPluginAsync = async (app) => {
+  app.post('/enhance-prompt', async (request, reply) => {
+    try {
+      const result = await enhancePrompt(request.body as any);
+      reply.send(result);
+    } catch (error) {
+      reply.code(500).send({ error: (error as Error).message });
+    }
+  });
 
-router.post('/enhance-prompt', async (req, res) => {
-  try {
-    const result = await enhancePrompt(req.body.context);
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: (error as Error).message });
-  }
-});
+  app.post('/suggest-genres', async (request, reply) => {
+    try {
+      const result = await suggestGenres(request.body as any);
+      reply.send(result);
+    } catch (error) {
+      reply.code(500).send({ error: (error as Error).message });
+    }
+  });
 
-router.post('/suggest-genres', async (req, res) => {
-  try {
-    const result = await suggestGenres(req.body.prompt);
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: (error as Error).message });
-  }
-});
+  app.post('/suggest-artists', async (request, reply) => {
+    try {
+      const result = await suggestArtists(request.body as any);
+      reply.send(result);
+    } catch (error) {
+      reply.code(500).send({ error: (error as Error).message });
+    }
+  });
 
-router.post('/suggest-artists', async (req, res) => {
-  try {
-    const result = await suggestArtists(req.body.prompt);
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: (error as Error).message });
-  }
-});
+  app.post('/suggest-languages', async (request, reply) => {
+    try {
+      const result = await suggestLanguages(request.body as any);
+      reply.send(result);
+    } catch (error) {
+      reply.code(500).send({ error: (error as Error).message });
+    }
+  });
 
-router.post('/suggest-languages', async (req, res) => {
-  try {
-    const result = await suggestLanguages(req.body.prompt);
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: (error as Error).message });
-  }
-});
-
-router.post('/enhance-lyrics', async (req, res) => {
-  try {
-    const result = await enhanceLyrics(req.body.lyrics);
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: (error as Error).message });
-  }
-});
-
-export { router as suggestionRouter };
+  app.post('/enhance-lyrics', async (request, reply) => {
+    try {
+      const result = await enhanceLyrics(request.body as any);
+      reply.send(result);
+    } catch (error) {
+      reply.code(500).send({ error: (error as Error).message });
+    }
+  });
+};

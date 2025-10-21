@@ -11,7 +11,7 @@ import { healthRoute } from './routes/health.js';
 import { metricsRoute } from './routes/metrics.js';
 import { generateRoute } from './routes/generate.js';
 import { jobsRoute } from './routes/jobs.js';
-import { assetsRoute } from './routes/assets.js';
+import { suggestionRoute } from './routes/suggestions.js';
 import { Queue } from './queue/queue.js';
 
 declare module 'fastify' {
@@ -56,6 +56,7 @@ export async function createServer() {
   await app.register(generateRoute);
   await app.register(jobsRoute);
   await app.register(assetsRoute);
+  await app.register(suggestionRoute, { prefix: '/api' });
 
   // Graceful shutdown
   app.addHook('onClose', () => {

@@ -1,4 +1,5 @@
 import type { MusicPlan } from '../lib/types';
+import { aiCache, CACHE_TTL } from '../lib/cache';
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
@@ -22,10 +23,14 @@ async function getAIClient() {
     return ai;
 }
 
-const callGemini = async (systemInstruction: string, userPrompt: string, schema: any) => {
+const callGemini = async (systemInstruction: string, userPrompt: string, schema: any, modelType: 'flash' | 'flash-8b' = 'flash') => {
     const client = await getAIClient();
+    
+    // Use ultra-cheap flash-8b for simple suggestions (50% cheaper)
+    const modelName = modelType === 'flash-8b' ? 'gemini-1.5-flash-8b' : 'gemini-1.5-flash';
+    
     const model = client.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
+        model: modelName,
         systemInstruction,
         generationConfig: {
             temperature: 0.9,
@@ -47,6 +52,10 @@ const callGemini = async (systemInstruction: string, userPrompt: string, schema:
 const suggestionSystemInstruction = `You are an AI Musicologist and expert DJ assistant for MuseForge Pro. Your knowledge spans music theory, production techniques, DJ culture, and the entire global music landscape (2025). Deliver hyper-relevant, innovative suggestions that elevate the user's creative vision.`;
 
 export const enhancePrompt = async (context: any) => {
+    // Check cache first
+    const cached = aiCache.get('enhancePrompt', context);
+    if (cached) return cached;
+
     const userPrompt = `
 CONTEXT:
 - Current Prompt: "${context.prompt || '(empty)'}"
@@ -58,14 +67,23 @@ Create a vivid 50-100 word music prompt. If Current Prompt is NOT empty, amplify
 
 Return ONLY JSON: {"prompt": "your enhanced prompt"}`;
 
-    return callGemini(suggestionSystemInstruction, userPrompt, {
+    const result = await callGemini(suggestionSystemInstruction, userPrompt, {
         type: 'object',
         properties: { prompt: { type: 'string' } },
         required: ['prompt']
     });
+
+    // Cache result
+    aiCache.set('enhancePrompt', context, result, CACHE_TTL.ENHANCED_PROMPT);
+    return result;
 };
 
 export const suggestGenres = async (context: any) => {
+    // Check cache first - cache by prompt only (genres are suggestions)
+    const cacheKey = { prompt: context.prompt, artists: context.artists };
+    const cached = aiCache.get('suggestGenres', cacheKey);
+    if (cached) return cached;
+
     const userPrompt = `
 CONTEXT:
 - Prompt: "${context.prompt}"
@@ -76,14 +94,23 @@ Suggest 3-5 music genres matching this vision. Prioritize 2025 trends and cultur
 
 Return ONLY JSON: {"genres": ["genre1", "genre2", ...]}`;
 
-    return callGemini(suggestionSystemInstruction, userPrompt, {
+    const result = await callGemini(suggestionSystemInstruction, userPrompt, {
         type: 'object',
         properties: { genres: { type: 'array', items: { type: 'string' } } },
         required: ['genres']
-    });
+    }, 'flash-8b'); // Use cheaper model for simple suggestions
+
+    // Cache for 24 hours - genre suggestions don't change often
+    aiCache.set('suggestGenres', cacheKey, result, CACHE_TTL.GENRE_SUGGESTIONS);
+    return result;
 };
 
 export const suggestArtists = async (context: any) => {
+    // Check cache
+    const cacheKey = { prompt: context.prompt, genres: context.genres };
+    const cached = aiCache.get('suggestArtists', cacheKey);
+    if (cached) return cached;
+
     const userPrompt = `
 CONTEXT:
 - Prompt: "${context.prompt}"
@@ -94,14 +121,22 @@ Recommend 3-5 artists (mix of icons and 2025 rising stars) that resonate with th
 
 Return ONLY JSON: {"artists": ["Artist1", "Artist2", ...]}`;
 
-    return callGemini(suggestionSystemInstruction, userPrompt, {
+    const result = await callGemini(suggestionSystemInstruction, userPrompt, {
         type: 'object',
         properties: { artists: { type: 'array', items: { type: 'string' } } },
         required: ['artists']
-    });
+    }, 'flash-8b'); // Use cheaper model
+
+    aiCache.set('suggestArtists', cacheKey, result, CACHE_TTL.ARTIST_SUGGESTIONS);
+    return result;
 };
 
 export const suggestLanguages = async (context: any) => {
+    // Check cache
+    const cacheKey = { genres: context.genres, artists: context.artists };
+    const cached = aiCache.get('suggestLanguages', cacheKey);
+    if (cached) return cached;
+
     const userPrompt = `
 CONTEXT:
 - Prompt: "${context.prompt}"
@@ -113,14 +148,22 @@ Recommend 1-3 vocal languages matching genre/cultural tone. Include English if c
 
 Return ONLY JSON: {"languages": ["Language1", ...]}`;
 
-    return callGemini(suggestionSystemInstruction, userPrompt, {
+    const result = await callGemini(suggestionSystemInstruction, userPrompt, {
         type: 'object',
         properties: { languages: { type: 'array', items: { type: 'string' } } },
         required: ['languages']
-    });
+    }, 'flash-8b'); // Use cheaper model
+
+    aiCache.set('suggestLanguages', cacheKey, result, CACHE_TTL.LANGUAGE_SUGGESTIONS);
+    return result;
 };
 
 export const suggestInstruments = async (context: any) => {
+    // Check cache
+    const cacheKey = { genres: context.genres, artists: context.artists };
+    const cached = aiCache.get('suggestInstruments', cacheKey);
+    if (cached) return cached;
+
     const userPrompt = `
 CONTEXT:
 - Prompt: "${context.prompt}"
@@ -131,14 +174,21 @@ Suggest 3-5 production elements/instruments for this track. Focus on innovative,
 
 Return ONLY JSON: {"instruments": ["Instrument1", ...]}`;
 
-    return callGemini(suggestionSystemInstruction, userPrompt, {
+    const result = await callGemini(suggestionSystemInstruction, userPrompt, {
         type: 'object',
         properties: { instruments: { type: 'array', items: { type: 'string' } } },
         required: ['instruments']
-    });
+    }, 'flash-8b'); // Use cheaper model
+
+    aiCache.set('suggestInstruments', cacheKey, result, CACHE_TTL.INSTRUMENT_SUGGESTIONS);
+    return result;
 };
 
 export const enhanceLyrics = async (context: any) => {
+    // Check cache
+    const cached = aiCache.get('enhanceLyrics', context);
+    if (cached) return cached;
+
     const userPrompt = `
 CONTEXT:
 - Prompt: "${context.prompt}"
@@ -150,11 +200,14 @@ Expand/rewrite lyrics into complete theme for ${context.duration}s song. Structu
 
 Return ONLY JSON: {"lyrics": "full lyrics text"}`;
 
-    return callGemini(suggestionSystemInstruction, userPrompt, {
+    const result = await callGemini(suggestionSystemInstruction, userPrompt, {
         type: 'object',
         properties: { lyrics: { type: 'string' } },
         required: ['lyrics']
     });
+
+    aiCache.set('enhanceLyrics', context, result, CACHE_TTL.LYRICS_ENHANCEMENT);
+    return result;
 };
 
 export async function generateMusicPlan(fullPrompt: any, creativitySeed: number): Promise<MusicPlan> {

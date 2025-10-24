@@ -64,32 +64,33 @@ export function subscribeToJob(
       
       // Map backend status to frontend with accurate progress
       if (job.status === 'succeeded') {
-        onEvent({ status: 'complete', pct: 100, label: 'Complete!' });
+        onEvent({ status: 'complete', pct: 100, label: 'Complete! 🎉' });
         polling = false;
       } else if (job.status === 'failed') {
         onEvent({ status: 'error', error: job.error || 'Generation failed' });
         polling = false;
       } else if (job.status === 'running') {
-        // Estimate progress based on typical generation time
-        const estimatedProgress = Math.min(95, Math.floor((pollCount / 30) * 100)); // ~60s estimate
+        // Use backend progress and message if available
+        const progress = job.progress || Math.min(95, Math.floor((pollCount / 30) * 100));
+        const message = job.message || 'Generating audio stems...';
         onEvent({ 
           status: 'generating-instruments', 
-          pct: estimatedProgress,
-          label: 'Generating audio stems...'
+          pct: progress,
+          label: message
         });
         setTimeout(poll, 2000);
       } else if (job.status === 'pending' || job.status === 'queued') {
         onEvent({ 
           status: 'planning', 
-          pct: 10,
-          label: 'Queued for processing...'
+          pct: 5,
+          label: job.message || 'Queued for processing...'
         });
         setTimeout(poll, 2000);
       } else {
         onEvent({ 
           status: job.status, 
-          pct: 25,
-          label: 'Processing...'
+          pct: job.progress || 25,
+          label: job.message || 'Processing...'
         });
         setTimeout(poll, 2000);
       }

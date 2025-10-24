@@ -12,6 +12,8 @@ export interface Job {
   error?: string;
   parent_id?: string;
   api_key_id?: string;
+  progress?: number;
+  message?: string;
 }
 
 export async function createJob(type: string, params: any, apiKeyId?: string, parentId?: string): Promise<Job> {

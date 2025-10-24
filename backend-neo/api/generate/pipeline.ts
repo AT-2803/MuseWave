@@ -55,10 +55,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
 async function processGeneration(jobId: string, params: GenerateInput) {
   try {
-    await updateJob(jobId, { status: 'running' });
+    // Creative status messages
+    const messages = [
+      'Consulting the AI muse...',
+      'Forging sonic blueprints...',
+      'Channeling creative frequencies...',
+      'Sculpting the soundscape...',
+      'Weaving musical DNA...',
+      'Summoning harmonic spirits...',
+      'Crafting auditory magic...',
+      'Brewing sonic potions...'
+    ];
+    
+    await updateJob(jobId, { 
+      status: 'running',
+      progress: 5,
+      message: messages[Math.floor(Math.random() * messages.length)]
+    });
     
     // 1. PLAN: Generate music plan based on genres and prompt
+    await updateJob(jobId, { 
+      progress: 15,
+      message: 'Contacting AI composer for master plan...'
+    });
     const plan = await generatePlan(params.musicPrompt, params.genres);
+    
+    await updateJob(jobId, { 
+      progress: 25,
+      message: '🎼 Blueprint received! Summoning the rhythm section...'
+    });
     
     // 2. STEMS: Generate individual instrument stems
     const config = { 
@@ -75,6 +100,10 @@ async function processGeneration(jobId: string, params: GenerateInput) {
     const leadPath = `/tmp/lead_${jobId}.wav`;
     
     // Generate drum pattern
+    await updateJob(jobId, { 
+      progress: 35,
+      message: '🥁 Forging drum patterns with precision...'
+    });
     await generateDrums({
       ...config,
       kickPattern: plan.drumPattern.kick,
@@ -83,11 +112,19 @@ async function processGeneration(jobId: string, params: GenerateInput) {
     }, drumsPath);
     
     // Generate bass line from model
+    await updateJob(jobId, { 
+      progress: 45,
+      message: '🎸 Laying down earth-shaking basslines...'
+    });
     const bassNoteCount = Math.floor(params.duration / (60 / config.bpm));
     const bassNotes = sample(plan.model, bassNoteCount);
     await generateBass(config, bassNotes.map(t => t.degree), bassPath);
     
     // Generate lead melody
+    await updateJob(jobId, { 
+      progress: 55,
+      message: '🎹 Painting melodic masterpieces...'
+    });
     const leadNoteCount = Math.floor(params.duration / (60 / config.bpm / 2));
     const leadNotes = sample(plan.model, leadNoteCount);
     await generateLead(config, leadNotes.map(t => t.degree), leadPath);
@@ -95,6 +132,10 @@ async function processGeneration(jobId: string, params: GenerateInput) {
     // 3. VOCALS (optional)
     let vocalsPath: string | undefined;
     if (params.lyrics) {
+      await updateJob(jobId, { 
+        progress: 65,
+        message: '🎤 Channeling vocal spirits into the mix...'
+      });
       vocalsPath = `/tmp/vocals_${jobId}.wav`;
       await generateVocals({
         text: params.lyrics,
@@ -106,6 +147,10 @@ async function processGeneration(jobId: string, params: GenerateInput) {
     }
     
     // 4. MIX: Combine all stems with mastering
+    await updateJob(jobId, { 
+      progress: 75,
+      message: '🎚️ Mixing and mastering with pro-studio magic...'
+    });
     const mixPath = `/tmp/mix_${jobId}.wav`;
     const inputs = [drumsPath, bassPath, leadPath];
     const volumes = [0.6, 0.7, 0.5];
@@ -132,6 +177,11 @@ async function processGeneration(jobId: string, params: GenerateInput) {
       reverb: plan.reverb
     }, mixPath);
     
+    await updateJob(jobId, { 
+      progress: 85,
+      message: '💾 Crystallizing your sonic creation...'
+    });
+    
     // Save audio asset
     const audioData = await readFile(mixPath);
     const audioAsset = await saveAsset('audio', 'audio/wav', audioData, params.duration);
@@ -139,11 +189,16 @@ async function processGeneration(jobId: string, params: GenerateInput) {
     // 5. VIDEO (optional)
     let videoAsset;
     if (params.generateVideo) {
+      await updateJob(jobId, { 
+        progress: 90,
+        message: '🎬 Rendering mesmerizing visuals...'
+      });
       const videoPath = `/tmp/video_${jobId}.mp4`;
+      const imagePath = `/tmp/image_${jobId}.png`;
       const videoStyle = params.videoStyles?.[0] || 'Abstract Visualizer';
       
       // Generate background image using canvas rendering
-      const { createCanvas } = await import('canvas');
+      const { createCanvas } = await import('@napi-rs/canvas');
       const canvas = createCanvas(1920, 1080);
       const ctx = canvas.getContext('2d');
       
@@ -173,7 +228,8 @@ async function processGeneration(jobId: string, params: GenerateInput) {
       ctx.fillText(params.musicPrompt.substring(0, 40), 960, 540);
       
       // Save to file
-      const buffer = canvas.toBuffer('image/png');
+      const { writeFile } = await import('fs/promises');
+      const buffer = await canvas.encode('png');
       await writeFile(imagePath, buffer);
       
       await renderVideo({

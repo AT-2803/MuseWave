@@ -81,3 +81,4 @@ The Vitest suite provisions an isolated database, exercises the health endpoint,
 - The internal queue persists job state in SQLite and enforces exponential backoff with retry caps per stage.
 - FFmpeg filter graphs are constructed dynamically to match the musical plan, ensuring harmonically aware basslines, chord stacks, leads, robotic vocals, and multi-style video renders.
 # Test change
+# MuseWave - Fixed Build

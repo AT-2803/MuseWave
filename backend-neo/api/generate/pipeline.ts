@@ -198,39 +198,48 @@ async function processGeneration(jobId: string, params: GenerateInput) {
       const videoStyle = params.videoStyles?.[0] || 'Abstract Visualizer';
       
       // Generate background image using canvas rendering
-      const { createCanvas } = await import('@napi-rs/canvas');
-      const canvas = createCanvas(1920, 1080);
-      const ctx = canvas.getContext('2d');
-      
-      // Create gradient background based on video style
-      const gradient = ctx.createLinearGradient(0, 0, 1920, 1080);
-      if (videoStyle.toLowerCase().includes('abstract')) {
-        gradient.addColorStop(0, '#6366f1');
-        gradient.addColorStop(0.5, '#8b5cf6');
-        gradient.addColorStop(1, '#d946ef');
-      } else if (videoStyle.toLowerCase().includes('lyric')) {
-        gradient.addColorStop(0, '#0f172a');
-        gradient.addColorStop(0.5, '#1e293b');
-        gradient.addColorStop(1, '#334155');
-      } else {
-        gradient.addColorStop(0, '#0ea5e9');
-        gradient.addColorStop(0.5, '#06b6d4');
-        gradient.addColorStop(1, '#14b8a6');
+      try {
+        const { createCanvas } = await import('@napi-rs/canvas');
+        const canvas = createCanvas(1920, 1080);
+        const ctx = canvas.getContext('2d');
+        
+        // Create gradient background based on video style
+        const gradient = ctx.createLinearGradient(0, 0, 1920, 1080);
+        if (videoStyle.toLowerCase().includes('abstract')) {
+          gradient.addColorStop(0, '#6366f1');
+          gradient.addColorStop(0.5, '#8b5cf6');
+          gradient.addColorStop(1, '#d946ef');
+        } else if (videoStyle.toLowerCase().includes('lyric')) {
+          gradient.addColorStop(0, '#0f172a');
+          gradient.addColorStop(0.5, '#1e293b');
+          gradient.addColorStop(1, '#334155');
+        } else {
+          gradient.addColorStop(0, '#0ea5e9');
+          gradient.addColorStop(0.5, '#06b6d4');
+          gradient.addColorStop(1, '#14b8a6');
+        }
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 1920, 1080);
+        
+        // Add title overlay
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.font = 'bold 72px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(params.musicPrompt.substring(0, 40), 960, 540);
+        
+        // Save to file
+        const { writeFile } = await import('fs/promises');
+        const buffer = await canvas.encode('png');
+        await writeFile(imagePath, buffer);
+      } catch (canvasError) {
+        console.warn('Canvas rendering failed, using solid color background:', canvasError);
+        // Fallback: create a simple solid color image or skip video generation
+        const { writeFile } = await import('fs/promises');
+        // Create a minimal 1x1 pixel PNG as fallback
+        const minimalPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
+        await writeFile(imagePath, minimalPng);
       }
-      
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 1920, 1080);
-      
-      // Add title overlay
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      ctx.font = 'bold 72px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(params.musicPrompt.substring(0, 40), 960, 540);
-      
-      // Save to file
-      const { writeFile } = await import('fs/promises');
-      const buffer = await canvas.encode('png');
-      await writeFile(imagePath, buffer);
       
       await renderVideo({
         audio: mixPath,

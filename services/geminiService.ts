@@ -167,7 +167,14 @@ CRITICAL DIRECTIVES:
 4. DJ-friendly structure with intro/outro, build-ups, drops
 5. Strict JSON schema adherence`;
 
-    const userPrompt = `Generate complete music plan:\n${JSON.stringify(fullPrompt, null, 2)}`;
+    // Create concise prompt instead of full JSON dump
+    const userPrompt = `Generate music plan:
+- Prompt: "${fullPrompt.musicPrompt || ''}"
+- Genres: ${fullPrompt.genres?.join(', ') || 'electronic'}
+- Duration: ${fullPrompt.duration || 90}s
+- Artists: ${fullPrompt.artistInspiration?.join(', ') || 'none'}
+- Lyrics: ${fullPrompt.lyrics ? 'Yes (include in sections)' : 'No'}
+- Seed: ${creativitySeed}`;
 
     const schema = {
         type: 'object',
@@ -261,18 +268,20 @@ CRITICAL DIRECTIVES:
 export async function auditMusicPlan(plan: MusicPlan, originalRequest: any) {
     const systemInstruction = `You are QA agent for MuseForge Pro. Audit generated plan against request and quality directives. Be strict and objective.`;
     
-    const userPrompt = `
-Original Request: ${JSON.stringify(originalRequest, null, 2)}
-Generated Plan: ${JSON.stringify(plan, null, 2)}
+    // Create concise audit prompt
+    const userPrompt = `Audit music plan:
+REQUEST: ${originalRequest.musicPrompt || ''} (${originalRequest.genres?.join(', ') || 'electronic'})
+PLAN: ${plan.title} | ${plan.bpm} BPM | ${plan.key} | ${plan.sections?.length || 0} sections
+Lyrics requested: ${originalRequest.lyrics ? 'Yes' : 'No'}
 
 AUDIT CHECKLIST:
-1. lyricsSung: If lyrics in request, are they in vocal sections with leadMelody?
-2. isUnique: Creative variation in chords/structure/effects? randomSeed used?
-3. styleFaithful: Instrumentation/BPM/mood align with genres/artists?
-4. djStructure: DJ-friendly intro/outro and drop/breakdown?
-5. masteringApplied: Specific mixing notes (reverb/compression/stereo)?
+1. lyricsSung: Lyrics in vocal sections with leadMelody?
+2. isUnique: Variation in chords/structure/effects?
+3. styleFaithful: Matches requested genres/artists?
+4. djStructure: Has intro/outro and drop/breakdown?
+5. masteringApplied: Mixing notes present?
 
-Set 'passed' true only if ALL checks satisfy. Provide RCA if fails.`;
+Set 'passed' true only if ALL checks satisfy.`;
 
     const schema = {
         type: 'object',
@@ -294,14 +303,16 @@ Set 'passed' true only if ALL checks satisfy. Provide RCA if fails.`;
 export async function generateCreativeAssets(musicPlan: MusicPlan, videoStyles: string[], lyrics: string) {
     const systemInstruction = `You are creative director AI for MuseForge Pro. Generate time-coded lyric alignment and video storyboards.`;
     
-    const userPrompt = `
-Music Plan: ${JSON.stringify(musicPlan, null, 2)}
+    // Create concise creative assets prompt
+    const userPrompt = `Generate creative assets:
+PLAN: ${musicPlan.title} | ${musicPlan.bpm} BPM | ${musicPlan.genre}
+Sections: ${musicPlan.sections?.map((s: any) => s.name).join(', ') || 'standard'}
 Video Styles: ${videoStyles.join(', ') || 'None'}
-Lyrics: "${lyrics || 'None'}"
+Lyrics: ${lyrics ? 'Yes (time-code them)' : 'No'}
 
 TASK:
-1. Lyrics Alignment: Time ranges (seconds) for lyric lines based on plan structure/BPM. Empty array if no lyrics.
-2. Video Storyboards: One concise sentence per requested video style. Only include requested styles.`;
+1. Lyrics Alignment: Time ranges for lyric lines (empty if no lyrics)
+2. Video Storyboards: One sentence per requested style`;
 
     const schema = {
         type: 'object',
